@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include "include/buffered_reader.h"
 
 int open_listenfd(char *port);
 void *web_server_handle_client(void* fd_arg);
@@ -65,12 +66,13 @@ void *web_server_handle_client(void* ci){
     socklen_t client_len;
     char hostname[MAX_LINE], port[MAX_LINE], *route, *args;
 
+
     err=0;
     fd = ((ConnInfo *)ci)->fd;
     client_addr = ((ConnInfo *)ci)->client_addr;
     free(ci);
     client_len = sizeof(client_addr);
-    
+
     if(err = getnameinfo((struct sockaddr *) &client_addr, client_len, hostname, MAX_LINE, port, MAX_LINE, NI_NUMERICSERV)){
         fprintf(stderr, "Could not find hostname and port on fp %d. (Error: %d)\n", fd, err);
         fprintf(stderr, "Error Options: %d EAI_AGAIN, %d EAI_BADFLAGS, %d EAI_FAIL, %d EAI_FAMILY, %d EAI_MEMORY, %d EAI_NONAME, %d EAI_OVERFLOW, %d EAI_SYSTEM\n", EAI_AGAIN, EAI_BADFLAGS, EAI_FAIL, EAI_FAMILY, EAI_MEMORY, EAI_NONAME, EAI_OVERFLOW, EAI_SYSTEM);

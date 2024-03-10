@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <fcntl.h>
-#include<pthread.h>
+#include <pthread.h>
 
 /*
     auth-reciever.c
@@ -38,10 +38,10 @@ void *start_auth_reciever(void* port){
     char *token, *id;
     struct pollfd poll_args;
 
-    // if(pthread_detach(pthread_self())){
-    //     fprintf(stderr, "Auth reciever thread detatch failed.\n");
-    //     exit(1);
-    // }
+    if(pthread_detach(pthread_self())){
+        fprintf(stderr, "Auth reciever thread detatch failed.\n");
+        exit(1);
+    }
         
     // Initalize variables
     id_size = strlen("111111111111111111111");
