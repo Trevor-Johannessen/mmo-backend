@@ -2,6 +2,8 @@
 #include <glib.h>
 #include <time.h>
 #include <pthread.h>
+//#include <windows.h> // sleep for windows
+#include <unistd.h> // sleep for linux
 
 /*
     Defines the awaiting connections dictionary which maps a token string to an awaiting connection struct.
@@ -17,11 +19,16 @@ int awaiting_connections_table_insert(char* token, char* id);
 int awaiting_connections_table_remove(char* token);
 int awaiting_connections_table_destroy();
 void awaiting_connections_table_print_all();
+void awaiting_connections_table_check_if_expired(gpointer key, gpointer value, gpointer now);
+void *awaiting_connections_table_cleaner(void* arg);
 
 GHashTable *awaiting_connections_table;
 pthread_mutex_t write_lock;
+const time_t time_to_live = 5*60;
 
 void awaiting_connections_table_initalize(){
+    pthread_t auth_reciever_tid;
+
     if(pthread_mutex_init(&write_lock, NULL)){
         fprintf(stderr, "Hash table write lock init failed.\n");
         exit(1);
@@ -29,6 +36,11 @@ void awaiting_connections_table_initalize(){
     awaiting_connections_table=0x0;
     if(!(awaiting_connections_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, awaiting_connection_destroy))){
         fprintf(stderr, "Could not initalize hash table.\n");
+        pthread_mutex_destroy(&write_lock);
+        exit(1);
+    }
+    if(pthread_create(&auth_reciever_tid, NULL, awaiting_connections_table_cleaner, NULL)){
+        fprintf(stderr, "Could not start auth reciever thread.\n");
         pthread_mutex_destroy(&write_lock);
         exit(1);
     }
@@ -43,7 +55,7 @@ int awaiting_connections_table_insert(char* token, char* id){
     conn = malloc(sizeof(AwaitingConnection));
     conn->id = id;
     time(&conn->expiration);
-    conn->expiration+=5*60; // awaiting connections open for 5 minutes
+    conn->expiration+=time_to_live; // awaiting connections open for 5 minutes
 
     // Insert connection into hashtable
     pthread_mutex_lock(&write_lock);
@@ -98,4 +110,27 @@ void awaiting_connections_table_print_all(){
     int counter = 0;
     fprintf(stdout, "Awaiting Connections Content\n");
     g_hash_table_foreach(awaiting_connections_table, print, (gpointer*)&counter);
+}
+
+void awaiting_connections_table_check_if_expired(gpointer key, gpointer value, gpointer now){
+    AwaitingConnection *conn = (AwaitingConnection *)value;
+    if(conn->expiration <= (time_t)now){
+        fprintf(stdout, "Removing %s.\n", (char *)key);
+        awaiting_connections_table_remove((char *)key);
+    }
+}
+
+void *awaiting_connections_table_cleaner(void* arg){
+    time_t now;
+
+    if(pthread_detach(pthread_self())){
+        fprintf(stderr, "Auth reciever thread detatch failed.\n");
+        exit(1);
+    }
+    while(1){
+        sleep(time_to_live);
+        fprintf(stdout, "Checking awaiting connections for staleness.\n");
+        time(&now);
+        g_hash_table_foreach(awaiting_connections_table, awaiting_connections_table_check_if_expired, (gpointer)now);
+    }
 }
