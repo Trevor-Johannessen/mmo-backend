@@ -102,9 +102,7 @@ void *start_auth_reciever(void* port){
         // Create new socket
 
         // Spin new thread with socket fd as arg
-
-        // Send port info back to auth server
-
+        
         #if ENABLE_DICT == 1 && DEBUG_DICT == 1
             awaiting_connections_table_print_all();
         #endif
@@ -153,10 +151,8 @@ int open_listenfd(char* port){
 int readSocket(int fd, char* token){
     int total_read=0;
     int amount_read;
-    while((amount_read = read(fd, &token[total_read], TOKEN_SIZE-total_read)) > 0){
+    while((amount_read = read(fd, &token[total_read], TOKEN_SIZE-total_read)) > 0)
         total_read+=amount_read;
-        fprintf(stdout, "read\n");
-    }
     return total_read;
 }
 
