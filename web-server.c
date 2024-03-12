@@ -1,11 +1,3 @@
-#include <poll.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include "include/buffered-reader.h"
 #include "include/web-server.h"
 
 int web_server_start(void* port){
@@ -87,10 +79,17 @@ void *web_server_handle_client(void* ci){
         return error("Could not find args.", hostname, port, br);
     
     // get headers
-    headers = web_server_get_headers(br);
-    printf("\n\n");
-    print_header_list(headers);
+    headers = header_list_parse_headers(br);
+    fprintf(stdout, "\nHeaders:\n");
+    header_list_print(headers);
 
+    // Check if websocket request
+    char *upgrade = header_list_get_header(headers, "Upgrade");
+    if(upgrade && !strcmp(upgrade, "websocket")){
+        create_web_socket(br, headers);
+    }
+    // teardown
+    header_list_destroy(headers);
     br_destroy(br);
     return NULL;
 }
@@ -100,7 +99,7 @@ void *error(char* msg, char *hostname, char *port, BufferedReader *br){
     br_destroy(br);
     return NULL;
 }
-// web-server.c:web_server_get_route
+
 void web_server_get_route(BufferedReader *br, char *method, char *route, char *args){
     char* line;
     line = br_read_line(br);
@@ -108,61 +107,8 @@ void web_server_get_route(BufferedReader *br, char *method, char *route, char *a
         return;
     if(!line) // no \n\r
         return;
-    fprintf(stdout, "%s\n", line);
+    fprintf(stdout, "%s", line);
     sscanf(line, "%s %s", method, route);
     fprintf(stdout, "%s - %s\n", method, route);
     free(line);
-}
-
-HeaderList *web_server_get_headers(BufferedReader *br){
-    char *header_name, *header_line;
-    char *header_value;
-    HeaderList *head, *cur, *prev;
-    
-    head = cur = prev = NULL;
-    while((header_line = br_read_line(br)) && !br->flags && header_line[0] != '\r'){
-        if(!(cur = malloc(sizeof(HeaderList)))){
-            destroy_header_list(head);
-            return NULL;
-        }
-        if(prev)
-            prev->next_header = cur;
-        if(!head)
-            head = cur;
-        if(!(header_name = (char *)malloc(sizeof(char)*MAX_HEADER))){
-            destroy_header_list(head);
-            return NULL;
-        }
-        if(!(header_value =(char *)malloc(sizeof(char)*MAX_LINE))){
-            destroy_header_list(head);
-            return NULL;
-        }
-        fprintf(stdout, "%s\n", header_line);
-        sscanf(header_line, "%[^:]%*[:] %s", header_name, header_value);
-        cur->header_name = header_name;
-        cur->header_value = header_value;
-        prev = cur;
-        free(header_line);
-    }
-    free(header_line);
-    return head;
-}
-
-void destroy_header_list(HeaderList *head){
-    HeaderList *cur, *hold;
-    if(!head)
-        return;
-    cur=head;
-    while(cur->next_header){
-        hold = cur;
-        cur=cur->next_header;
-        free(hold->header_name);
-        free(hold->header_value);
-        free(hold);
-    }
-}
-
-void print_header_list(HeaderList *head){
-    for(HeaderList *cur=head;cur;cur=cur->next_header)
-        fprintf(stdout, "%s - %s\n", cur->header_name, cur->header_value);
 }

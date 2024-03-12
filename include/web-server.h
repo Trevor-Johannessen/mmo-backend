@@ -1,11 +1,18 @@
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include "buffered-reader.h"
+#include "web-socket.h"
+#include "header-list.h"
 
-typedef struct header_node {
-    char *header_name;
-    char *header_value;
-    struct header_node *next_header;
-} HeaderList;
+#ifndef WEBSERVER_H
+#define WEBSERVER_H
 
 typedef struct {
     int fd;
@@ -15,11 +22,8 @@ typedef struct {
 int open_listenfd(char *port);
 void *web_server_handle_client(void* fd_arg);
 void web_server_get_route(BufferedReader *br, char *method, char *route, char *args);
-HeaderList *web_server_get_headers(BufferedReader *br);
-void destroy_header_list(HeaderList *head);
-void print_header_list(HeaderList *head);
 void *error(char* msg, char *hostname, char *port, BufferedReader *br);
 
-
 #define MAX_LINE 1024 // lines cannot exceed 1023 characters
-#define MAX_HEADER 128 // header names cannot exceed 127 characters
+
+#endif

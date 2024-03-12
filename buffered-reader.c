@@ -1,9 +1,4 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
 #include "include/buffered-reader.h"
-#include <fcntl.h>
 
 BufferedReader *br_init(int fd, int buf_size){
     BufferedReader *buffer;
