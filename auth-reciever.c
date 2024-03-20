@@ -97,11 +97,6 @@ void *start_auth_reciever(void* port){
         #if ENABLE_DICT == 1
             awaiting_connections_table_insert(token, id);
         #endif
-        // Find open port
-
-        // Create new socket
-
-        // Spin new thread with socket fd as arg
         
         #if ENABLE_DICT == 1 && DEBUG_DICT == 1
             awaiting_connections_table_print_all();

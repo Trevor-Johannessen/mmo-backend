@@ -5,7 +5,6 @@ int web_server_start(void* port){
     pthread_t tid;
     socklen_t client_len;
     struct sockaddr_storage client_addr;
-    struct pollfd poll_args;
     ConnInfo *ci;
 
     if(pthread_detach(pthread_self())){
@@ -86,8 +85,12 @@ void *web_server_handle_client(void* ci){
     // Check if websocket request
     char *upgrade = header_list_get_header(headers, "Upgrade");
     if(upgrade && !strcmp(upgrade, "websocket")){
-        create_web_socket(br, headers);
+        ws_create(br->fd, headers);
     }
+
+
+
+
     // teardown
     header_list_destroy(headers);
     br_destroy(br);
