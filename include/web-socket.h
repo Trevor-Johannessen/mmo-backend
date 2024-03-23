@@ -3,6 +3,7 @@
 #include <glib.h>
 #include <openssl/sha.h>
 #include <poll.h>
+#include <arpa/inet.h>
 #include "header-list.h"
 #include "buffered-reader.h"
 #include "http-packet.h"
@@ -11,19 +12,26 @@
 #define WEBSOCKET_H
 
 typedef struct {
-    int fin : 1;
-    int rsv1 : 1;
-    int rsv2 : 1;
-    int rsv3: 1;
-    int opcode : 4;
-    int mask : 1;
-    int length : 7;
+    unsigned int fin : 1;
+    unsigned int rsv1 : 1;
+    unsigned int rsv2 : 1;
+    unsigned int rsv3: 1;
+    unsigned int opcode : 4;
+    unsigned int mask : 1;
+    unsigned int length : 7;
+    // char fin;
+    // char rsv1;
+    // char rsv2;
+    // char rsv3;
+    // char opcode;
+    // char mask;
+    // char length;
     int key;
     union {
         short short_len;
         long long_len;   
     } length_ext;
-    char data[];
+    char *data;
 } WS_Frame;
 
 void ws_create(int fd, HeaderList *headers);
@@ -35,4 +43,5 @@ void print_hash(unsigned char *hash);
 char* base64_encode_glib(const char* input_string);
 WS_Frame *ws_text_frame(char *data);
 WS_Frame *ws_bin_frame(void *data, long len);
+void ws_apply_key(int key, long len, char *data);
 #endif

@@ -135,9 +135,20 @@ void ws_write_frame(int fd, WS_Frame *frame){
 void *ws_read_frame(int fd){
     WS_Frame temp_frame, *frame;
     long frame_size;
+    unsigned short headers;
+    char *body;
 
-    memset(&temp_frame, 0, sizeof(temp_frame));
-    ws_read(fd, &temp_frame, 2);
+    headers = 0;
+    ws_read(fd, &headers, 2);
+    headers = ntohs(headers);
+    temp_frame.fin = headers >> 7+8;
+    temp_frame.rsv1 = headers >> 6+8;
+    temp_frame.rsv2 = headers >> 5+8;
+    temp_frame.rsv3 = headers >> 4+8;
+    temp_frame.opcode = headers >> 8;
+    temp_frame.mask = headers >> 7;
+    temp_frame.length = headers & 7;
+
     if(temp_frame.length == 126){
         ws_read(fd, &temp_frame.length_ext.short_len, sizeof(short));
         frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.short_len);
@@ -152,10 +163,23 @@ void *ws_read_frame(int fd){
     }
     if(temp_frame.mask)
         ws_read(fd, &temp_frame.key, sizeof(int));
+    temp_frame.key = ntohl(temp_frame.key);
     memcpy(frame, &temp_frame, sizeof(WS_Frame));
-    ws_read(fd, &frame->data, frame_size);
+
+    body = malloc(frame_size+1);
+    body[frame_size] = '\0';
+    ws_read(fd, body, frame_size);
+    frame->data = body;
+    ws_apply_key(frame->key, frame_size, frame->data);
 
     return frame;
+}
+
+void ws_apply_key(int key, long len, char *data){
+    int i;
+    for(i=0;i<len;i++){
+        data[i] = data[i]^(((char*)&key)[3-(i%4)]);
+    }
 }
 
 void ws_echo_server(int fd){
