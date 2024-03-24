@@ -77,6 +77,18 @@ void ws_read(int fd, void *buf, long len){
         total_read+=amount_read;
 }
 
+unsigned short ws_transcribe_headers(WS_Frame *frame){
+    short headers;
+    headers |= frame->fin<<7;
+    headers |= frame->rsv1<<6;
+    headers |= frame->rsv2<<5;
+    headers |= frame->rsv3<<4;
+    headers |= frame->opcode;
+    headers |= frame->mask<<7+8;
+    headers |= frame->length<<8;
+    return headers;
+}
+
 char* base64_encode_glib(const char* input_string) {
     gsize encoded_length;
     gchar *encoded_data;
@@ -88,16 +100,26 @@ char* base64_encode_glib(const char* input_string) {
 }
 
 WS_Frame *ws_text_frame(char *data) {
+    WS_Frame *frame;
     int len;
     len = strlen(data);
-    return ws_bin_frame((void *)data, len);
+    frame =  ws_bin_frame((void *)data, len+1);
+    frame->opcode = 1;
+    return frame;
+}
+
+WS_Frame *ws_close_frame(short *status_code){
+    WS_Frame *frame;
+    frame =  ws_bin_frame((void *)status_code, sizeof(*status_code));
+    frame->opcode = 8;
+    return frame;
 }
 
 WS_Frame *ws_bin_frame(void *data, long len) {
     WS_Frame *frame;
-
+    frame = malloc(sizeof(WS_Frame));
     // decide how many bytes are needed for size
-    if(len > 126)
+    if(len < 126)
         frame->length = len;
     else if(len > 32767){
         frame->length = 126;
@@ -107,29 +129,33 @@ WS_Frame *ws_bin_frame(void *data, long len) {
         frame->length_ext.long_len = len;
     }
 
-    frame = malloc(sizeof(WS_Frame) + len);
     frame->fin=1;
     frame->rsv1=0;
     frame->rsv2=0;
     frame->rsv3=0;
     frame->opcode=2;
     frame->mask=0;
+    frame->data = malloc(len);
     memcpy(frame->data, data, len);
     return frame;
 }
 
 void ws_write_frame(int fd, WS_Frame *frame){
-    long data_length = frame->length;
-    ws_write(fd, frame, 2);
+    long data_length;
+    unsigned short headers;
+    data_length = frame->length;
+    headers = ws_transcribe_headers(frame);
+    ws_write(fd, &headers, sizeof(short));
     if(frame->length == 126){
         ws_write(fd, &frame->length_ext.short_len, sizeof(short));
         data_length = frame->length_ext.short_len;
-    }else if(frame->length == 127)
+    }else if(frame->length == 127){
         ws_write(fd, &frame->length_ext.long_len, sizeof(long));
         data_length = frame->length_ext.long_len;
+    }
     if(frame->mask)
         ws_write(fd, &frame->key, sizeof(int));
-    ws_write(fd, &frame->data, data_length);
+    ws_write(fd, frame->data, data_length);
 }
 
 void *ws_read_frame(int fd){
@@ -147,7 +173,7 @@ void *ws_read_frame(int fd){
     temp_frame.rsv3 = headers >> 4+8;
     temp_frame.opcode = headers >> 8;
     temp_frame.mask = headers >> 7;
-    temp_frame.length = headers & 7;
+    temp_frame.length = headers & 127;
 
     if(temp_frame.length == 126){
         ws_read(fd, &temp_frame.length_ext.short_len, sizeof(short));
@@ -165,12 +191,15 @@ void *ws_read_frame(int fd){
         ws_read(fd, &temp_frame.key, sizeof(int));
     temp_frame.key = ntohl(temp_frame.key);
     memcpy(frame, &temp_frame, sizeof(WS_Frame));
-
-    body = malloc(frame_size+1);
-    body[frame_size] = '\0';
-    ws_read(fd, body, frame_size);
-    frame->data = body;
-    ws_apply_key(frame->key, frame_size, frame->data);
+    if(frame_size){
+        body = malloc(frame_size+1);
+        body[frame_size] = '\0';
+        ws_read(fd, body, frame_size);
+        frame->data = body;
+        ws_apply_key(frame->key, frame_size, frame->data);
+    }else{
+        frame->data = 0x0;
+    }
 
     return frame;
 }
@@ -182,9 +211,20 @@ void ws_apply_key(int key, long len, char *data){
     }
 }
 
+void ws_close(int fd, int code){
+    WS_Frame *frame;
+    unsigned short *code_buf;
+    code_buf = malloc(sizeof(code_buf));
+    *code_buf = htons(code);
+    frame = ws_close_frame(code_buf);
+    ws_write_frame(fd, frame);
+    free(frame);
+    free(code_buf);
+}
+
 void ws_echo_server(int fd){
     struct pollfd poll_args;
-    WS_Frame *frame;
+    WS_Frame *r_frame, *w_frame;
 
     // set up polling
     poll_args.fd = fd;
@@ -192,16 +232,26 @@ void ws_echo_server(int fd){
     poll_args.revents = 0;
     
     // start echo loop
-    while(1){
+    //while(1){
+    for(int i=0; i<3; i++){
     
         // await input
         while(poll(&poll_args, 1, -1) <= 0);
-
+        memset(r_frame, 0, sizeof(r_frame));
         // read in frame
-        frame = ws_read_frame(fd);
-        ws_write_frame(fd, frame);
+        r_frame = ws_read_frame(fd);
+
+        // create return frame
+        w_frame = ws_text_frame(r_frame->data);
+        ws_write_frame(fd, w_frame);
 
         // echo frame back
-        free(frame);
+        if(&(r_frame->data)){
+            free(r_frame->data);
+            free(w_frame->data);
+        }
+        free(r_frame);
+        free(w_frame);
     }
+    ws_close(fd, 1000);
 }
