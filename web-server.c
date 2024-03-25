@@ -82,11 +82,21 @@ void *web_server_handle_client(void* ci){
     fprintf(stdout, "\nHeaders:\n");
     header_list_print(headers);
 
+    // do any webserver stuff here
+
+    // webserver cleanup
+    free(method);
+    free(route);
+    free(args);
+
     // Check if websocket request
     char *upgrade = header_list_get_header(headers, "Upgrade");
     if(upgrade && !strcmp(upgrade, "websocket")){
         ws_create(br->fd, headers);
     }
+
+
+
 
 
 

@@ -35,9 +35,13 @@ void ws_run(int fd);
 void ws_echo_server(int fd);
 char *hash_key(char* key);
 void print_hash(unsigned char *hash);
-char* base64_encode_glib(const char* input_string);
+//char* base64_encode_glib(const char* input_string);
 WS_Frame *ws_text_frame(char *data);
 WS_Frame *ws_bin_frame(void *data, long len);
 WS_Frame *ws_close_frame(short *status_code);
 void ws_apply_key(int key, long len, char *data);
+
+extern const long MB;
+extern const long WS_FRAME_SIZE;
+
 #endif

@@ -1,5 +1,8 @@
 #include "include/web-socket.h"
 
+const long MB = 1048576;
+const long WS_FRAME_SIZE = 4 * MB;
+
 void ws_create(int fd, HeaderList *headers){
     char *key = header_list_get_header(headers, "Sec-WebSocket-Key");
     char *handshake_msg = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ";
@@ -8,7 +11,8 @@ void ws_create(int fd, HeaderList *headers){
     hash = hash_key(key);
     
     // reencode the key
-    key = base64_encode_glib(hash);
+    key = g_base64_encode((const guchar*)hash, SHA_DIGEST_LENGTH);
+    //key = base64_encode_glib(hash);
     free(hash);
 
     // Form the response packet
@@ -18,6 +22,7 @@ void ws_create(int fd, HeaderList *headers){
     ws_write(fd, handshake_msg, strlen(handshake_msg));
     ws_write(fd, key, strlen(key));
     ws_write(fd, "\r\n\r\n", strlen("\r\n\r\n"));
+    free(key);
 
     fprintf(stdout, "Wrote to websocket.\n");
     ws_echo_server(fd);
@@ -53,6 +58,7 @@ char *hash_key(char* key){
     printf("SHA-1 Hash: ");
 
     print_hash(hash);
+    free(concatenation);
     return hash;
 }
 
@@ -79,6 +85,7 @@ void ws_read(int fd, void *buf, long len){
 
 unsigned short ws_transcribe_headers(WS_Frame *frame){
     short headers;
+    headers = 0;
     headers |= frame->fin<<7;
     headers |= frame->rsv1<<6;
     headers |= frame->rsv2<<5;
@@ -89,20 +96,22 @@ unsigned short ws_transcribe_headers(WS_Frame *frame){
     return headers;
 }
 
-char* base64_encode_glib(const char* input_string) {
-    gsize encoded_length;
-    gchar *encoded_data;
+// char* base64_encode_glib(const char* input_string) {
+//     gsize encoded_length;
+//     gchar *encoded_data;
     
-    // Encode the input string to base64
-    encoded_data = g_base64_encode((const guchar*)input_string, SHA_DIGEST_LENGTH);
+//     // Encode the input string to base64
+//     encoded_data = g_base64_encode((const guchar*)input_string, SHA_DIGEST_LENGTH);
     
-    return encoded_data;
-}
+//     return encoded_data;
+// }
 
 WS_Frame *ws_text_frame(char *data) {
     WS_Frame *frame;
     int len;
-    len = strlen(data);
+    len=-1;
+    if(data)
+        len = strlen(data);
     frame =  ws_bin_frame((void *)data, len+1);
     frame->opcode = 1;
     return frame;
@@ -138,6 +147,12 @@ WS_Frame *ws_bin_frame(void *data, long len) {
     frame->data = malloc(len);
     memcpy(frame->data, data, len);
     return frame;
+}
+
+void ws_free_frame(WS_Frame *frame){
+    if(frame->data)
+        free(frame->data);
+    free(frame);
 }
 
 void ws_write_frame(int fd, WS_Frame *frame){
@@ -181,11 +196,14 @@ void *ws_read_frame(int fd){
         frame_size = temp_frame.length_ext.short_len;
     } else if(temp_frame.length == 127) {
         ws_read(fd, &temp_frame.length_ext.long_len, sizeof(long));
-        frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.long_len);
         frame_size = temp_frame.length_ext.long_len;
+        // Check for invalid sizes
+        if(frame_size > WS_FRAME_SIZE)
+            return NULL;   
+        frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.long_len);
     } else {
-        frame = malloc(sizeof(WS_Frame) + temp_frame.length);
         frame_size = temp_frame.length;
+        frame = malloc(sizeof(WS_Frame) + temp_frame.length);
     }
     if(temp_frame.mask)
         ws_read(fd, &temp_frame.key, sizeof(int));
@@ -199,6 +217,12 @@ void *ws_read_frame(int fd){
         ws_apply_key(frame->key, frame_size, frame->data);
     }else{
         frame->data = 0x0;
+    }
+
+    // Check for invalid frames
+    if((frame->opcode > 2 && frame->opcode < 8) || (frame->opcode > 10)){
+        ws_free_frame(frame);
+        return NULL;
     }
 
     return frame;
@@ -218,14 +242,15 @@ void ws_close(int fd, int code){
     *code_buf = htons(code);
     frame = ws_close_frame(code_buf);
     ws_write_frame(fd, frame);
-    free(frame);
+    ws_free_frame(frame);
     free(code_buf);
 }
 
 void ws_echo_server(int fd){
     struct pollfd poll_args;
     WS_Frame *r_frame, *w_frame;
-
+    r_frame = w_frame = NULL;
+    
     // set up polling
     poll_args.fd = fd;
     poll_args.events = POLLIN;
@@ -237,7 +262,6 @@ void ws_echo_server(int fd){
     
         // await input
         while(poll(&poll_args, 1, -1) <= 0);
-        memset(r_frame, 0, sizeof(r_frame));
         // read in frame
         r_frame = ws_read_frame(fd);
 
@@ -246,12 +270,9 @@ void ws_echo_server(int fd){
         ws_write_frame(fd, w_frame);
 
         // echo frame back
-        if(&(r_frame->data)){
-            free(r_frame->data);
-            free(w_frame->data);
-        }
-        free(r_frame);
-        free(w_frame);
+        ws_free_frame(r_frame);
+        ws_free_frame(w_frame);
     }
     ws_close(fd, 1000);
+    fprintf(stdout, "Closing connection.\n");
 }
