@@ -40,7 +40,7 @@ void *start_auth_reciever(void* port){
     }
         
     // Initalize variables
-    id_size = strlen("111111111111111111111");
+    id_size = 21;
     #if ENABLE_DICT == 1
         awaiting_connections_table_initalize();
     #endif
