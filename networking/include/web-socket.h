@@ -1,3 +1,6 @@
+#ifndef WEBSOCKET_H
+#define WEBSOCKET_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -8,8 +11,6 @@
 #include "buffered-reader.h"
 #include "http-packet.h"
 
-#ifndef WEBSOCKET_H
-#define WEBSOCKET_H
 
 typedef struct {
     unsigned int fin : 1;
@@ -34,6 +35,7 @@ void ws_write_frame(int fd, WS_Frame *frame);
 unsigned short ws_transcribe_headers(WS_Frame *frame);
 void ws_run(int fd);
 void ws_echo_server(int fd);
+unsigned long ws_length(WS_Frame *frame);
 char *hash_key(char* key);
 void print_hash(unsigned char *hash);
 //char* base64_encode_glib(const char* input_string);
@@ -41,6 +43,7 @@ WS_Frame *ws_text_frame(char *data);
 WS_Frame *ws_bin_frame(void *data, long len);
 WS_Frame *ws_close_frame(short *status_code);
 void ws_apply_key(int key, long len, char *data);
+void ws_free_frame(WS_Frame *frame);
 
 extern const long MB;
 extern const long WS_FRAME_SIZE;

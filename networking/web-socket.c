@@ -96,15 +96,15 @@ unsigned short ws_transcribe_headers(WS_Frame *frame){
     return headers;
 }
 
-// char* base64_encode_glib(const char* input_string) {
-//     gsize encoded_length;
-//     gchar *encoded_data;
-    
-//     // Encode the input string to base64
-//     encoded_data = g_base64_encode((const guchar*)input_string, SHA_DIGEST_LENGTH);
-    
-//     return encoded_data;
-// }
+unsigned long ws_length(WS_Frame *frame){
+    if(frame->length == 126){
+        return (long)(frame->length_ext.short_len);
+    } else if(frame->length == 127) {
+        return frame->length_ext.long_len;
+    } else {
+        return (long)frame->length;
+    }
+}
 
 WS_Frame *ws_text_frame(char *data) {
     WS_Frame *frame;
