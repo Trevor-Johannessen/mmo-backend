@@ -1,5 +1,7 @@
 #include "header-list.h"
-#include "buffered-reader.h"
+
+#ifndef HTTPPACKET_H
+#define HTTPPACKET_H
 
 typedef struct {
     char *method;
@@ -8,6 +10,4 @@ typedef struct {
     HeaderList *headers;
 } HTTPPacket;
 
-
-HTTPPacket *http_packet_get(BufferedReader br);
-int http_packet_send(int fd, HTTPPacket *packet);
+#endif

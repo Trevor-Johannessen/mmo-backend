@@ -9,6 +9,7 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include "include/awaiting-connections.h"
 
 /*
     auth-reciever.c
@@ -24,11 +25,6 @@ const int REPS = 5;
 
 int open_listenfd(char* port);
 int readSocket(int fd, char* token);
-void awaiting_connections_table_initalize();
-int awaiting_connections_table_insert(char* token, char* id);
-int awaiting_connections_table_remove(char* token);
-int awaiting_connections_table_destroy();
-void awaiting_connections_table_print_all();
 
 void *start_auth_reciever(void* port){
     int listen_fd, conn_fd, current_flags;

@@ -173,7 +173,7 @@ void ws_write_frame(int fd, WS_Frame *frame){
     ws_write(fd, frame->data, data_length);
 }
 
-void *ws_read_frame(int fd){
+WS_Frame *ws_read_frame(int fd){
     WS_Frame temp_frame, *frame;
     long frame_size;
     unsigned short headers;

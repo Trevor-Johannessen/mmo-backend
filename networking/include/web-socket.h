@@ -29,6 +29,7 @@ typedef struct {
 
 void ws_create(int fd, HeaderList *headers);
 void ws_write(int fd, void *string, long len);
+WS_Frame *ws_read_frame(int fd);
 void ws_write_frame(int fd, WS_Frame *frame);
 unsigned short ws_transcribe_headers(WS_Frame *frame);
 void ws_run(int fd);

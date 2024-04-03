@@ -1,28 +1,6 @@
-#include <stdio.h>
-#include <glib.h>
-#include <time.h>
-#include <pthread.h>
-//#include <windows.h> // sleep for windows
-#include <unistd.h> // sleep for linux
+#include "include/awaiting-connections.h"
 
-/*
-    Defines the awaiting connections dictionary which maps a token string to an awaiting connection struct.
-*/
-typedef struct awaiting_connection {
-    char *id;
-    time_t expiration;
-} AwaitingConnection;
-
-void awaiting_connection_destroy();
-void awaiting_connections_table_initalize();
-int awaiting_connections_table_insert(char* token, char* id);
-int awaiting_connections_table_remove(char* token);
-int awaiting_connections_table_destroy();
-void awaiting_connections_table_print_all();
-void awaiting_connections_table_check_if_expired(gpointer key, gpointer value, gpointer now);
-void *awaiting_connections_table_cleaner(void* arg);
-
-GHashTable *awaiting_connections_table;
+GHashTable *awaiting_connections_table = NULL;
 pthread_mutex_t write_lock;
 const time_t time_to_live = 5*60;
 
