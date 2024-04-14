@@ -52,6 +52,7 @@ int awaiting_connections_table_insert(char* token, char* id){
         awaiting_connection_destroy((gpointer)conn);
         free(conn);
     }
+    fprintf(stdout, "Inserted: %s\n", token);
     return success;
 }
 

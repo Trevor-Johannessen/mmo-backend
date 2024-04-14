@@ -54,7 +54,6 @@ void *start_auth_reciever(void* port){
     }
     current_flags = fcntl(conn_fd, F_GETFL, 0x0);
     fcntl(conn_fd, F_SETFL, current_flags | O_NONBLOCK);
-    fprintf(stdout, "Connected.\n");
     
     // Set poll args
     poll_args.fd = conn_fd;
@@ -68,26 +67,17 @@ void *start_auth_reciever(void* port){
         memset(token, 0, sizeof(char) * (TOKEN_SIZE+1));
 
         // Get token
-        fprintf(stdout, "Polling.\n");
         while(poll(&poll_args, 1, -1) <= 0);
-        fprintf(stdout, "There is data ready to be read.\n");
         if(!readSocket(conn_fd, token)){
             fprintf(stderr, "Could not read token\n");
             exit(1);
         }
-        fprintf(stdout, "Token: %s\n", token);
-        fprintf(stdout, "Finished reading.\n");
 
         // Get google ID
-        fprintf(stdout, "Polling.\n");
         while(poll(&poll_args, 1, -1) <= 0);
-        fprintf(stdout, "There is data ready to be read.\n");
         if(!readSocket(conn_fd, id)){
-            fprintf(stderr, "Could not read ID\n");
             exit(1);
         }
-        fprintf(stdout, "ID: %s\n", id);
-        fprintf(stdout, "Finished reading.\n");
 
         // Register token
         #if ENABLE_DICT == 1

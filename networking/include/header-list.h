@@ -1,10 +1,10 @@
+#ifndef HEADERLIST_H
+#define HEADERLIST_H
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "buffered-reader.h"
-
-#ifndef HEADERLIST_H
-#define HEADERLIST_H
 
 typedef struct header_node {
     char *header_name;

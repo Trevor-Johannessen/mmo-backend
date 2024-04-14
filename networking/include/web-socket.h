@@ -11,6 +11,12 @@
 #include "buffered-reader.h"
 #include "http-packet.h"
 
+#define WS_CONTINUE 0x0
+#define WS_TEXT 0x1
+#define WS_BINARY 0x2
+#define WS_CLOSE 0x8
+#define WS_PING 0x9
+#define WS_PONG 0xA
 
 typedef struct {
     unsigned int fin : 1;

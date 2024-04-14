@@ -1,3 +1,9 @@
+#ifndef EVENTLOOP_H
+#define EVENTLOOP_H
+
+#include "../../communication/include/packet.h"
+#include "../../communication/include/packet-types.h"
+#include "../../player/include/session.h"
 
 /*
     This is the loop that is responsible for reading using input, and directing it to the correct functioins
@@ -11,3 +17,7 @@
     5. Cleanup
     6. Repeat
 */
+
+void event_loop_start(int fd);
+
+#endif

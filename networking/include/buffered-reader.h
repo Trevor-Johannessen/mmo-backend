@@ -1,11 +1,11 @@
+#ifndef BUFFEREDREADER_H
+#define BUFFEREDREADER_H
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-
-#ifndef BUFFEREDREADER_H
-#define BUFFEREDREADER_H
 
 typedef struct buffered_reader {
     char* buf;

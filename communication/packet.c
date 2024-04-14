@@ -1,6 +1,6 @@
 #include "include/packet.h"
 
-Packet *packet_read(int fd, Session *session){
+Packet *packet_read(int fd){
     WS_Frame *frame;
     Packet *packet;
     unsigned long frame_len;
@@ -11,11 +11,14 @@ Packet *packet_read(int fd, Session *session){
 
     // recieve and parse binary frame
     frame = ws_read_frame(fd);
-    packet->opcode = *((int *)(&frame->data));
-    packet->session_id = *((long *)((&frame->data)+sizeof(int)));
-    offset = sizeof(int)+sizeof(long);
+    packet->session_id = *((int *)((&frame->data)+sizeof(packet->opcode)));
+    offset = sizeof(packet->opcode)+sizeof(packet->session_id);
     packet->length = ws_length(frame)-offset;
+    packet->opcode = *((char *)(&frame->data));
     packet->data = frame->data-offset;
+
+    // debug
+    fprintf(stdout, "opcode: %d\nid: %ld\nlength: %ld\n", packet->opcode, packet->length, packet->session_id);
 
     // free frame but save the body
     frame->data=0x0;

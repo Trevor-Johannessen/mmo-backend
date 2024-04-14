@@ -93,17 +93,15 @@ void *web_server_handle_client(void* ci){
     char *upgrade = header_list_get_header(headers, "Upgrade");
     if(upgrade && !strcmp(upgrade, "websocket")){
         ws_create(br->fd, headers);
+        //event_loop_start(br->fd);
+        ws_echo_server(br->fd);
     }
-
-
-
-
-
-
 
     // teardown
     header_list_destroy(headers);
     br_destroy(br);
+
+    
     return NULL;
 }
 

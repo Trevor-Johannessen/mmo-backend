@@ -1,3 +1,6 @@
+#ifndef WEBSERVER_H
+#define WEBSERVER_H
+
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,9 +13,7 @@
 #include "buffered-reader.h"
 #include "web-socket.h"
 #include "header-list.h"
-
-#ifndef WEBSERVER_H
-#define WEBSERVER_H
+#include "../../core/include/event-loop.h"
 
 typedef struct {
     int fd;

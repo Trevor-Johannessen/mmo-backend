@@ -23,9 +23,6 @@ void ws_create(int fd, HeaderList *headers){
     ws_write(fd, key, strlen(key));
     ws_write(fd, "\r\n\r\n", strlen("\r\n\r\n"));
     free(key);
-
-    fprintf(stdout, "Wrote to websocket.\n");
-    ws_echo_server(fd);
 }
 
 void ws_run(int fd){
@@ -190,6 +187,7 @@ WS_Frame *ws_read_frame(int fd){
     temp_frame.mask = headers >> 7;
     temp_frame.length = headers & 127;
 
+    // get frame size
     if(temp_frame.length == 126){
         ws_read(fd, &temp_frame.length_ext.short_len, sizeof(short));
         frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.short_len);
@@ -205,10 +203,16 @@ WS_Frame *ws_read_frame(int fd){
         frame_size = temp_frame.length;
         frame = malloc(sizeof(WS_Frame) + temp_frame.length);
     }
+    
+    // get mask
     if(temp_frame.mask)
         ws_read(fd, &temp_frame.key, sizeof(int));
     temp_frame.key = ntohl(temp_frame.key);
+
+    // transfer frame
     memcpy(frame, &temp_frame, sizeof(WS_Frame));
+
+    // read body
     if(frame_size){
         body = malloc(frame_size+1);
         body[frame_size] = '\0';
@@ -264,6 +268,10 @@ void ws_echo_server(int fd){
         while(poll(&poll_args, 1, -1) <= 0);
         // read in frame
         r_frame = ws_read_frame(fd);
+
+        if(!r_frame || r_frame->opcode == WS_CLOSE){
+            break;
+        }
 
         // create return frame
         w_frame = ws_text_frame(r_frame->data);
