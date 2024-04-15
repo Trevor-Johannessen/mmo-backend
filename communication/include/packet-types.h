@@ -9,9 +9,9 @@
 #define LOGIN_PACKET 1
 #define LOGOUT_PACKET 2
 
-Packet *packet_template(unsigned char opcode, long id);
-Packet *packet_template_login(long id);
-Packet *packet_template_logout(long id);
+Packet *packet_template(unsigned char opcode);
+Packet *packet_template_login();
+Packet *packet_template_logout();
 
 
 #endif

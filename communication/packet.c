@@ -11,14 +11,13 @@ Packet *packet_read(int fd){
 
     // recieve and parse binary frame
     frame = ws_read_frame(fd);
-    packet->session_id = *((int *)((&frame->data)+sizeof(packet->opcode)));
-    offset = sizeof(packet->opcode)+sizeof(packet->session_id);
+    offset = sizeof(packet->opcode);
     packet->length = ws_length(frame)-offset;
     packet->opcode = *((char *)(&frame->data));
     packet->data = frame->data-offset;
 
     // debug
-    fprintf(stdout, "opcode: %d\nid: %ld\nlength: %ld\n", packet->opcode, packet->length, packet->session_id);
+    fprintf(stdout, "opcode: %d\nlength: %ld\n", packet->opcode, packet->length);
 
     // free frame but save the body
     frame->data=0x0;
@@ -46,11 +45,10 @@ void packet_write(int fd, Packet *packet){
     ws_free_frame(frame);
 }
 
-Packet *packet_create(unsigned char opcode, long id, void *data, long len){
+Packet *packet_create(unsigned char opcode, void *data, long len){
     Packet *packet;
     packet = malloc(sizeof(Packet));
     packet->opcode = opcode;
-    packet->session_id = id;
     packet->length = len;
     packet->data = data;
     return packet;
