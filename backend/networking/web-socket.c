@@ -160,10 +160,10 @@ void ws_write_frame(int fd, WS_Frame *frame){
     ws_write(fd, &headers, sizeof(short));
     if(frame->length == 126){
         ws_write(fd, &frame->length_ext.short_len, sizeof(short));
-        data_length = frame->length_ext.short_len;
+        data_length = htons(frame->length_ext.short_len);
     }else if(frame->length == 127){
         ws_write(fd, &frame->length_ext.long_len, sizeof(long));
-        data_length = frame->length_ext.long_len;
+        data_length = htonl(frame->length_ext.long_len);
     }
     if(frame->mask)
         ws_write(fd, &frame->key, sizeof(int));
@@ -190,14 +190,16 @@ WS_Frame *ws_read_frame(int fd){
     // get frame size
     if(temp_frame.length == 126){
         ws_read(fd, &temp_frame.length_ext.short_len, sizeof(short));
+        frame_size = ntohs(temp_frame.length_ext.short_len);
+        temp_frame.length_ext.short_len = frame_size;
         frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.short_len);
-        frame_size = temp_frame.length_ext.short_len;
     } else if(temp_frame.length == 127) {
         ws_read(fd, &temp_frame.length_ext.long_len, sizeof(long));
-        frame_size = temp_frame.length_ext.long_len;
+        frame_size = ntohl(temp_frame.length_ext.long_len);
         // Check for invalid sizes
         if(frame_size > WS_FRAME_SIZE)
             return NULL;   
+        temp_frame.length_ext.long_len = frame_size;
         frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.long_len);
     } else {
         frame_size = temp_frame.length;

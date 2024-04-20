@@ -11,10 +11,9 @@ Packet *packet_read(int fd){
 
     // recieve and parse binary frame
     frame = ws_read_frame(fd);
-    offset = sizeof(packet->opcode);
-    packet->length = ws_length(frame)-offset;
-    packet->opcode = *((char *)(&frame->data));
-    packet->data = frame->data-offset;
+    packet->length = ws_length(frame)-sizeof(packet->opcode);
+    packet->opcode = frame->data[0];
+    packet->data = frame->data+sizeof(packet->opcode)+sizeof(packet->length);
 
     // debug
     fprintf(stdout, "opcode: %d\nlength: %ld\n", packet->opcode, packet->length);
