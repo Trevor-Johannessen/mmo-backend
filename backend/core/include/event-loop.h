@@ -3,6 +3,7 @@
 
 #include "../../communication/include/packet.h"
 #include "../../communication/include/packet-types.h"
+#include "../../communication/include/errors.h"
 #include "../../player/include/session.h"
 #include "../../authentication/include/awaiting-connections.h"
 
@@ -20,5 +21,6 @@
 */
 
 void event_loop_start(int fd);
+void event_loop_error(int fd, int code);
 
 #endif

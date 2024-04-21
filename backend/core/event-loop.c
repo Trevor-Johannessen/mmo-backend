@@ -9,6 +9,15 @@ char *temp_get_name(char *id){
     return name;
 }
 
+void event_loop_error(int fd, int code){
+    Packet *packet;
+    if(packet = packet_template_error(code)){
+        packet_write(fd, packet);
+        packet_free(packet);
+    }
+    ws_close(fd, 1008);
+}
+
 void event_loop_start(int fd){
     Packet *packet;
     Session *session;
@@ -23,7 +32,7 @@ void event_loop_start(int fd){
 
     while(poll(&poll_args, 1, -1) <= 0);
     if(!(packet = packet_read(fd))){
-        // Bad login packet, shutdown connection
+        event_loop_error(fd, BAD_LOGIN);
         return;
     }
 
@@ -32,7 +41,7 @@ void event_loop_start(int fd){
 
     // get player id from awaiting_connections table
     if(!(id = awaiting_connections_table_find(code))){
-        // TODO: SEND ERROR PACKET
+        event_loop_error(fd, INVALID_AWAITING_CONNECTION);
         return;
     }
 
@@ -44,12 +53,12 @@ void event_loop_start(int fd){
 
     // Set up structs needed for a connection
     player = player_create(name);
-    session = session_create(player, code);
+    session = session_create(player, code, fd);
 
     while(1){
         while(poll(&poll_args, 1, -1) <= 0);
-        if(!(packet = packet_read(fd))){
-            // Bad packet recieved, shutdown connection
+        if(!(packet = packet_read(session->fd))){
+            event_loop_error(session->fd, BAD_PACKET);
         }
     }
 

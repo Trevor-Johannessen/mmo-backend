@@ -50,6 +50,7 @@ WS_Frame *ws_bin_frame(void *data, long len);
 WS_Frame *ws_close_frame(short *status_code);
 void ws_apply_key(int key, long len, char *data);
 void ws_free_frame(WS_Frame *frame);
+void ws_close(int fd, int code);
 
 extern const long MB;
 extern const long WS_FRAME_SIZE;

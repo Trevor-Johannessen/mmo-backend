@@ -2,7 +2,7 @@
 
 StateArray **session_valid_packets;
 
-Session *session_create(Player *player, char *id){
+Session *session_create(Player *player, char *id, int fd){
     Session *session;
     
     session = malloc(sizeof(session));
@@ -10,6 +10,7 @@ Session *session_create(Player *player, char *id){
     session->player = player;
     session->id = id;
     session->state = DISABLED;
+    session->fd = fd;
     return session;
 }
 
