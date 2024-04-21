@@ -56,7 +56,7 @@ int awaiting_connections_table_insert(char* token, char* id){
     return success;
 }
 
-int awaiting_connections_table_remove(char* token){
+int awaiting_connections_table_remove(char* token, int remove_token){
     AwaitingConnection *conn;
     int success;
 
@@ -66,9 +66,19 @@ int awaiting_connections_table_remove(char* token){
         fprintf(stderr, "Could not remove %s from hashtable.\n", token);
         success=0;
     }
-    free(token);
+    if(remove_token)
+        free(token);
     pthread_mutex_unlock(&write_lock);
     return success;
+}
+
+char *awaiting_connections_table_find(char *key){
+    AwaitingConnection* conn;
+    if(!(conn = (AwaitingConnection *)g_hash_table_lookup(awaiting_connections_table, (gconstpointer)key))){
+        fprintf(stderr, "Could not find connection with key '%s'.", key);
+        return 0x0;
+    }
+    return conn->id;
 }
 
 int awaiting_connections_table_destroy(){
@@ -95,7 +105,7 @@ void awaiting_connections_table_check_if_expired(gpointer key, gpointer value, g
     AwaitingConnection *conn = (AwaitingConnection *)value;
     if(conn->expiration <= (time_t)now){
         fprintf(stdout, "Removing %s.\n", (char *)key);
-        awaiting_connections_table_remove((char *)key);
+        awaiting_connections_table_remove((char *)key, 1);
     }
 }
 

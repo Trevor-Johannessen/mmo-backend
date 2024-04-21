@@ -10,14 +10,14 @@
 
 typedef struct {
 	Player *player;
-	long id; // (currently static, may need to use inital code as seed for incrementing code)
 	State state;
+	char *id; // (currently static, may need to use inital code as seed for incrementing code)
 } Session;
 
 // List of variably sized arrays
 extern StateArray **session_valid_packets;
 
-Session *session_create(Player *player, long id);
+Session *session_create(Player *player, char *id);
 void session_destroy(Session *session);
 int session_verify_packet(Session *session, unsigned char opcode);
 void session_populate_list();

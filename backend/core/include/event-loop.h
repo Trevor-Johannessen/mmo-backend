@@ -4,6 +4,7 @@
 #include "../../communication/include/packet.h"
 #include "../../communication/include/packet-types.h"
 #include "../../player/include/session.h"
+#include "../../authentication/include/awaiting-connections.h"
 
 /*
     This is the loop that is responsible for reading using input, and directing it to the correct functioins

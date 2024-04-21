@@ -22,11 +22,12 @@ typedef struct awaiting_connection {
 void awaiting_connection_destroy();
 void awaiting_connections_table_initalize();
 int awaiting_connections_table_insert(char* token, char* id);
-int awaiting_connections_table_remove(char* token);
+int awaiting_connections_table_remove(char* token, int remove_token);
 int awaiting_connections_table_destroy();
 void awaiting_connections_table_print_all();
 void awaiting_connections_table_check_if_expired(gpointer key, gpointer value, gpointer now);
 void *awaiting_connections_table_cleaner(void* arg);
+char *awaiting_connections_table_find(char *key);
 
 extern GHashTable *awaiting_connections_table;
 

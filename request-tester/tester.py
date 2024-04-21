@@ -1,4 +1,5 @@
 from websocket import create_connection
+from datetime import datetime
 import inspect
 import requests
 import packets
@@ -25,6 +26,8 @@ class Connection:
         # get new id
         self.id = findSmallestId()
         self.aliases = []
+        self.packets_sent = 0
+        self.time_created = datetime.now()
 
         # create new alias
         if alias:
@@ -86,6 +89,7 @@ class Connection:
         if not packet_class:
             print(f"Error: Invalid packet type {type}.")
             return
+        self.packets_sent+=1
         packet_class(conn=self).send(self.ws.ws)
 
     def recv(self, verbose=True):
@@ -98,6 +102,13 @@ def printHelp():
     print("\tAlias {id} {alias} - Creates an alias for a connection id.")
     print("\tSend {id} - Sends a packet to the given id.")
     print("\tClose {id} - Closes the connection with the given id.")
+
+
+def printList():
+    print("ID\tOpened\t\tRequests Sent\tAliases")
+    for id in connections:
+        conn = connections[id]
+        print(f"{id}\t{conn.time_created.strftime('%H:%M:%S')}\t{conn.packets_sent}\t\t{conn.aliases}")
 
 while True:
     cmd = input("Packet > ")
@@ -117,6 +128,10 @@ while True:
     # Check for help
     if args[0] == 'help':
         printHelp()
+        continue
+
+    if args[0] == 'list':
+        printList()
         continue
 
     # Check for connect:
@@ -140,12 +155,13 @@ while True:
         continue
     
     # Check identifier
-    identifier = args[1]
-    if identifier not in connections:
-        if identifier not in aliases:
-            print("Error: Invalid identifier.")
-            continue
-        identifier = aliases[identifier]
+    if len(args) > 1:
+        identifier = args[1]
+        if identifier not in connections:
+            if identifier not in aliases:
+                print("Error: Invalid identifier.")
+                continue
+            identifier = aliases[identifier]
 
     # Execute command
     getattr(connections[identifier], args[0])(*tuple(args[2:]))

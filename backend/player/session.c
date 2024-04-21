@@ -2,7 +2,7 @@
 
 StateArray **session_valid_packets;
 
-Session *session_create(Player *player, long id){
+Session *session_create(Player *player, char *id){
     Session *session;
     
     session = malloc(sizeof(session));
@@ -17,6 +17,7 @@ void session_destroy(Session *session){
     if(!session)
         return;
     player_destroy(session->player);
+    free(session->id);
     free(session);
 }
 
