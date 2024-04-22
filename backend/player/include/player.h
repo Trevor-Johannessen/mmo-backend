@@ -5,12 +5,13 @@
 #define PLAYER_H
 
 typedef struct {
-    short x;
-    short y;
+    int x;
+    int y;
+    int tile_id;
     char *name;
 } Player;
 
 Player *player_create(char *name);
-void player_destroy(Player *player);
+void player_free(Player *player);
 
 #endif

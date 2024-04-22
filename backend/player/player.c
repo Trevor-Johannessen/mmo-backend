@@ -8,7 +8,7 @@ Player *player_create(char *name){
     return player;
 }
 
-void player_destroy(Player *player){
+void player_free(Player *player){
     if(!player)
         return;
     if(player->name)
