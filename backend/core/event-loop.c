@@ -1,4 +1,5 @@
-#include "include/event-loop.h"
+#include "include/event-loop.h" 
+#include "../maps/include/tile.h"
 
 char *temp_get_name(char *id){
     const int BUF_SIZE = 100;
@@ -22,6 +23,7 @@ void event_loop_start(int fd){
     Packet *packet;
     Session *session;
     Player *player;
+    int tile_id;
     char *name, *code, *id;
     struct pollfd poll_args;
     
@@ -45,15 +47,23 @@ void event_loop_start(int fd){
         return;
     }
 
-    // get name from database (primary key is code)
-    name = temp_get_name(id);
-
     // remove entry from awaiting_connections table
     awaiting_connections_table_remove(code, 0);
 
     // Set up structs needed for a connection
-    player = player_create(name);
+    player = player_create();
     session = session_create(player, code, fd);
+
+
+    // get info from database (primary key is code)
+    player->name = temp_get_name(id);
+    tile_id = 0;
+
+    // spawn player into world
+    if(tile_spawn_player(tile_id, player) == -1){
+        session_destroy(session);
+        event_loop_error(fd, INVALID_AWAITING_CONNECTION);
+    }
 
     while(1){
         while(poll(&poll_args, 1, -1) <= 0);

@@ -1,10 +1,9 @@
 #include "include/player.h"
 
-Player *player_create(char *name){
+Player *player_create(){
     Player *player;
     player=malloc(sizeof(player));
     memset(player, 0, sizeof(player));
-    player->name = name;
     return player;
 }
 

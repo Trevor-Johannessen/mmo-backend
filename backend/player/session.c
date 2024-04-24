@@ -17,7 +17,8 @@ Session *session_create(Player *player, char *id, int fd){
 void session_destroy(Session *session){
     if(!session)
         return;
-    player_free(session->player);
+    if(session->player)
+        player_free(session->player);
     free(session->id);
     free(session);
 }

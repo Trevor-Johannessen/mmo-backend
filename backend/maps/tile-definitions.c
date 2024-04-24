@@ -1,5 +1,6 @@
 #include "include/tile-definitions.h"
 
+Tile *tiles[];
 Tile *(*tile_loaders[])() = {
     tile_def_test_tile
 };

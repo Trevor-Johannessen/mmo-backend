@@ -1,9 +1,10 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include "../../player/include/player.h"
-#include "../../structures/include/linked-list.h"
 #include <pthread.h>
+#include <stdlib.h>
+#include "../../structures/include/linked-list.h"
+#include "../../player/include/player.h"
 
 typedef struct tile_row {
     pthread_mutex_t lock;
@@ -32,15 +33,17 @@ extern Tile *tiles[];
 extern Tile *(*tile_loaders[])();
 
 int tile_event_activate(int x, int y, void *args);
-int tile_check_space(int x, int y);
+int tile_check_space(Tile *tile, int x, int y);
 Tile *tile_load(int id);
 void tile_unload(int id);
 void tile_initalize();
 TileRow *tile_row_create(int width);
 Tile *tile_create(int id, int width, int height);
 int tile_get_segments(int width);
-long tile_spawn_player(Tile *tile, Player *player);
+long tile_spawn_player(int id, Player *player);
 void tile_event_free(TileEvent *event);
 void tile_row_free(int height, TileRow **rows);
+long tile_random_coord(Tile *tile);
+int tile_invalidate_coord(Tile *tile, int x, int y);
 
 #endif

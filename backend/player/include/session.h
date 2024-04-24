@@ -9,10 +9,10 @@
 #define SESSION_H
 
 typedef struct {
-	Player *player;
-	State state;
-	char *id; // (currently static, may need to use inital code as seed for incrementing code)
 	int fd;
+	State state;
+	Player *player;
+	char *id; // (currently static, may need to use inital code as seed for incrementing code)
 } Session;
 
 // List of variably sized arrays

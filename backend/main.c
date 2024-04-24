@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h> // sleep for linux
+#include <time.h>
 #include "structures/include/linked-list.h"
 #include "player/include/session.h"
 
@@ -12,6 +13,9 @@ char *WEB_PORT = "12001";
 const int SPIN_SEPERATE_AUTH = 0;
 
 int main(int argc, char* argv[]){
+    // preparation
+    srand(time(NULL));
+
     // Spin up auth-reciever thread
     pthread_t auth_reciever_tid;
     pthread_t web_server_tid;

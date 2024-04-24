@@ -16,5 +16,6 @@ int link_has_next(Link *cur);
 void link_map(Link *head, void (*func)(void *));
 int link_contains(Link *head, void *item);
 Link *link_add_next(Link *head, void *payload);
+Link *link_add_first(Link *head, void *payload);
 
 #endif
