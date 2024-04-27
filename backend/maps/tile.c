@@ -48,7 +48,6 @@ long tile_random_coord(Tile *tile){
 
 long tile_spawn_player(int id, Player *player){
     long pos;
-    int x, y;
     Tile *tile;
 
     if(id < 0 || id > TILE_COUNT)
@@ -56,6 +55,7 @@ long tile_spawn_player(int id, Player *player){
 
     // get tile
     tile = tile_loaders[id]();
+    player->tile = tile;
 
     // get random coordinate
     pos = tile_random_coord(player->tile);
@@ -68,7 +68,7 @@ long tile_spawn_player(int id, Player *player){
     tile->players = link_add_first(tile->players, player);
 
     // set coordinate to be invalid
-    if(!tile_invalidate_coord(tile, x, y))
+    if(!tile_invalidate_coord(tile, player->x, player->y))
         return -1;
     // return coordinates
     return pos;
