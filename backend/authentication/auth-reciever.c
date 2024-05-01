@@ -106,7 +106,7 @@ int open_listenfd(char* port){
     hints.ai_flags = AI_PASSIVE; // Set to be a listening socket
     hints.ai_flags |= AI_NUMERICSERV; // Only return sockets associated with ports and not services
     hints.ai_flags |= AI_ADDRCONFIG; // Get appropriate IPs
-    getaddrinfo(NULL, port, &hints, &listp);
+    getaddrinfo(0x0, port, &hints, &listp);
 
     for(p = listp; p; p = p->ai_next){
         if((listen_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0)

@@ -5,11 +5,11 @@ HeaderList *header_list_parse_headers(BufferedReader *br){
     char *header_value;
     HeaderList *head, *cur, *prev;
     
-    head = cur = prev = NULL;
+    head = cur = prev = 0x0;
     while((header_line = br_read_line(br)) && !br->flags && header_line[0] != '\r'){
         if(!(cur = malloc(sizeof(HeaderList)))){
             header_list_destroy(head);
-            return NULL;
+            return 0x0;
         }
         memset(cur, '\0', sizeof(HeaderList));
         if(prev)
@@ -18,11 +18,11 @@ HeaderList *header_list_parse_headers(BufferedReader *br){
             head = cur;
         if(!(header_name = (char *)malloc(sizeof(char)*MAX_HEADER))){
             header_list_destroy(head);
-            return NULL;
+            return 0x0;
         }
         if(!(header_value =(char *)malloc(sizeof(char)*MAX_HEADER_VALUE))){
             header_list_destroy(head);
-            return NULL;
+            return 0x0;
         }
         sscanf(header_line, "%[^:]%*[:] %s", header_name, header_value);
         cur->header_name = header_name;

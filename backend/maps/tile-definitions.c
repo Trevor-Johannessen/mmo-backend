@@ -4,6 +4,7 @@ Tile *tiles[];
 Tile *(*tile_loaders[])() = {
     tile_def_test_tile
 };
+pthread_mutex_t tile_locks[TILE_COUNT];
 
 Tile *tile_def_test_tile(){
     int height, width, i, j;
@@ -14,10 +15,8 @@ Tile *tile_def_test_tile(){
     Tile *tile;
 
     // define constants
-    width = 64;
-    height = 16;
-    decor_string = "";
-    collision_string = "";
+    width = 32;
+    height = 8;
 
     // create template
     tile = tile_create(0, width, height);
@@ -25,10 +24,10 @@ Tile *tile_def_test_tile(){
     // populate collision
     for(i=0; i<height;i++)
         for(j=0;j<tile_get_segments(width);j++)
-            tile->collision[i]->segments[j] = collision_string[width*i+j];
+            tile->collision[i]->segments[j] = 0;
     
     // populate decor
-    strncpy(tile->decor, decor_string, width*height);
+    memset(tile->decor, 0, width*height);
 
     // create events
     

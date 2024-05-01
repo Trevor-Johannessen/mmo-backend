@@ -1,23 +1,23 @@
 #include "include/awaiting-connections.h"
 
-GHashTable *awaiting_connections_table = NULL;
+GHashTable *awaiting_connections_table = 0x0;
 pthread_mutex_t write_lock;
 const time_t time_to_live = 5*60;
 
 void awaiting_connections_table_initalize(){
     pthread_t auth_reciever_tid;
 
-    if(pthread_mutex_init(&write_lock, NULL)){
+    if(pthread_mutex_init(&write_lock, 0x0)){
         fprintf(stderr, "Hash table write lock init failed.\n");
         exit(1);
     }
     awaiting_connections_table=0x0;
-    if(!(awaiting_connections_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, awaiting_connection_destroy))){
+    if(!(awaiting_connections_table = g_hash_table_new_full(g_str_hash, g_str_equal, 0x0, awaiting_connection_destroy))){
         fprintf(stderr, "Could not initalize hash table.\n");
         pthread_mutex_destroy(&write_lock);
         exit(1);
     }
-    if(pthread_create(&auth_reciever_tid, NULL, awaiting_connections_table_cleaner, NULL)){
+    if(pthread_create(&auth_reciever_tid, 0x0, awaiting_connections_table_cleaner, 0x0)){
         fprintf(stderr, "Could not start auth reciever thread.\n");
         pthread_mutex_destroy(&write_lock);
         exit(1);

@@ -198,7 +198,7 @@ WS_Frame *ws_read_frame(int fd){
         frame_size = ntohl(temp_frame.length_ext.long_len);
         // Check for invalid sizes
         if(frame_size > WS_FRAME_SIZE)
-            return NULL;   
+            return 0x0;   
         temp_frame.length_ext.long_len = frame_size;
         frame = malloc(sizeof(WS_Frame) + temp_frame.length_ext.long_len);
     } else {
@@ -228,7 +228,7 @@ WS_Frame *ws_read_frame(int fd){
     // Check for invalid frames
     if((frame->opcode > 2 && frame->opcode < 8) || (frame->opcode > 10)){
         ws_free_frame(frame);
-        return NULL;
+        return 0x0;
     }
 
     return frame;
@@ -255,7 +255,7 @@ void ws_close(int fd, int code){
 void ws_echo_server(int fd){
     struct pollfd poll_args;
     WS_Frame *r_frame, *w_frame;
-    r_frame = w_frame = NULL;
+    r_frame = w_frame = 0x0;
     
     // set up polling
     poll_args.fd = fd;

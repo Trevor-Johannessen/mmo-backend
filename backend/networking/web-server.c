@@ -31,7 +31,7 @@ int web_server_start(void* port){
         ci->fd = conn_fd;
         ci->client_addr = client_addr;
         // Spin up new thread to handle client
-        if(pthread_create(&tid, NULL, web_server_handle_client, (void *)ci)){
+        if(pthread_create(&tid, 0x0, web_server_handle_client, (void *)ci)){
             fprintf(stderr, "Could not start web client handler thread.\n");
             close(conn_fd);
             continue;
@@ -102,13 +102,13 @@ void *web_server_handle_client(void* ci){
     br_destroy(br);
 
     
-    return NULL;
+    return 0x0;
 }
 
 void *error(char* msg, char *hostname, char *port, BufferedReader *br){
     fprintf(stderr, "%s:%s - %s\n", hostname, port, msg);
     br_destroy(br);
-    return NULL;
+    return 0x0;
 }
 
 void web_server_get_route(BufferedReader *br, char *method, char *route, char *args){

@@ -8,6 +8,7 @@
 
 extern Tile *tiles[TILE_COUNT];
 extern Tile *(*tile_loaders[TILE_COUNT])();
+extern pthread_mutex_t tile_locks[TILE_COUNT];
 
 // TILE INITALIZATION FUNCTIONS
 Tile *tile_def_test_tile();

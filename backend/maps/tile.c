@@ -1,21 +1,37 @@
 #include "include/tile.h"
 #include "include/tile-definitions.h"
 
+void tile_lock_init(){
+    int i;
+
+    for(i=0;i<TILE_COUNT;i++){
+        pthread_mutex_init(&tile_locks[i], 0x0);
+    }
+}
+
 int tile_event_activate(int x, int y, void *args){
 
 }
 
-int tile_check_space(Tile *tile, int x, int y){
+int tile_coord_is_empty(Tile *tile, int x, int y){
     int segment;
-    segment = tile_get_segments(x+1)-1;
-    return !((tile->collision[y])->segments[segment] & (x>>3));
+    segment = tile_get_segments(x);
+    return !((tile->collision[y])->segments[segment] & (0x1<<(x&0x7)));
 }
 
 int tile_get_segments(int width){
-    return width>>3 + (width&7 > 0); 
+    return width>>3; 
 }
 
-int tile_invalidate_coord(Tile *tile, int x, int y){
+int tile_enable_coord(Tile *tile, int x, int y){
+    return tile_toggle_coord(tile, x, y, 0);
+}
+
+int tile_disable_coord(Tile *tile, int x, int y){
+    return tile_toggle_coord(tile, x, y, 1);
+}
+
+int tile_toggle_coord(Tile *tile, int x, int y, int disable){
     int segment;
     // check bounds
     if(y >= tile->height || y < 0 || x >= tile->width || x < 0)
@@ -23,13 +39,16 @@ int tile_invalidate_coord(Tile *tile, int x, int y){
 
     pthread_mutex_lock(&((tile->collision[y])->lock));
     // check if position is valid
-    if(!tile_check_space(tile, x, y)){
+    if(disable && !tile_coord_is_empty(tile, x, y)){
         pthread_mutex_unlock(&((tile->collision[y])->lock));
         return 0;
     }
-    // invalidate position
-    segment = tile_get_segments(x+1)-1;
-    (tile->collision[y])->segments[segment] |= (1<<(x>>3));
+    // disable position
+    segment = tile_get_segments(x);
+    if(disable)
+        (tile->collision[y])->segments[segment] |= (1<<(x&0x7));
+    else
+        (tile->collision[y])->segments[segment] &= ~(1<<(x&0x7));
     pthread_mutex_unlock(&((tile->collision[y])->lock));
     return 1;
 }
@@ -42,7 +61,7 @@ long tile_random_coord(Tile *tile){
         x = rand() % tile->width;
         y = rand() % tile->height;
     // check that coords are valid
-    }while(!tile_invalidate_coord(tile, x, y));
+    }while(!tile_coord_is_empty(tile, x, y));
     return (long)x<<32 | (y & 0xffffffff);
 }
 
@@ -68,7 +87,7 @@ long tile_spawn_player(int id, Player *player){
     tile->players = link_add_first(tile->players, player);
 
     // set coordinate to be invalid
-    if(!tile_invalidate_coord(tile, player->x, player->y))
+    if(!tile_disable_coord(tile, player->x, player->y))
         return -1;
     // return coordinates
     return pos;
@@ -81,7 +100,7 @@ TileRow *tile_row_create(int width){
     row_size = sizeof(TileRow)+sizeof(char)*segments;
     row = malloc(row_size);
     memset(row, 0, row_size);
-    pthread_mutex_init(&(row->lock), NULL);
+    pthread_mutex_init(&(row->lock), 0x0);
     return row;
 }
 
@@ -104,6 +123,7 @@ Tile *tile_create(int id, int width, int height){
     tile->players = 0x0;
     tile->events = 0x0;
     tile->refs = 0;
+    pthread_mutex_init(&(tile->lock), 0x0);
 
     // create collision
     tile->collision = malloc(sizeof(TileRow *) * height);
@@ -123,11 +143,6 @@ void tile_event_free(TileEvent *event){
 
 void tile_free(Tile *tile){
     Link *link, *parent;
-
-    if(tile->refs){
-        tile->refs--;
-        return;
-    }
 
     // free decor
     free(tile->decor);
@@ -152,22 +167,32 @@ void tile_free(Tile *tile){
         tile_event_free(parent->payload);
         free(parent);
     }
-
     free(tile);
 }
 
 Tile *tile_load(int id){
-    // check if tile is not already initalize (is null)
-    if(!tiles[id])
-        tiles[id] = tile_loaders[id]();
-    tiles[id]->refs+=1;
+    if(id > TILE_COUNT || id < 0)
+        return 0x0;
+    // check if tile is not already initalize (is 0x0)
+    pthread_mutex_lock(&tile_locks[id]);
+    if(!tiles[id]){
+        tiles[id] = tile_loaders[id]();    
+    }
+    tiles[id]->refs++;
+    pthread_mutex_unlock(&tile_locks[id]);
     return tiles[id];
 }
 
 void tile_unload(int id){
+    if(id > TILE_COUNT || id < 0)
+        return;
     if(!tiles[id])
         return;
-    if(!--tiles[id])
+    pthread_mutex_lock(&tile_locks[id]);
+    tiles[id]->refs--;
+    if(!tiles[id]->refs){
         tile_free(tiles[id]);
-    return;
+        tiles[id] = 0x0;
+    }
+    pthread_mutex_unlock(&tile_locks[id]);
 }
