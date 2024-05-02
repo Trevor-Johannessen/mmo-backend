@@ -1,5 +1,5 @@
 #include "include/event-loop.h" 
-#include "../maps/include/tile.h"
+#include "../maps/include/map.h"
 
 char *temp_get_name(char *id){
     const int BUF_SIZE = 100;

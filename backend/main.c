@@ -4,7 +4,7 @@
 #include <time.h>
 #include "structures/include/linked-list.h"
 #include "player/include/session.h"
-#include "maps/include/tile.h"
+#include "maps/include/map.h"
 
 void *start_auth_reciever(void* port);
 void *web_server_start(void* port);

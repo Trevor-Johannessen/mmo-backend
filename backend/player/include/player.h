@@ -8,7 +8,7 @@
 typedef struct {
     int x;
     int y;
-    struct tile *tile; // forward inclusion of Tile
+    struct map *map; // forward inclusion of Map
     char *name;
 } Player;
 

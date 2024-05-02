@@ -2,20 +2,20 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdatomic.h>
-#include "../maps/include/tile.h"
+#include "../maps/include/map.h"
 
 atomic_int disable_count;
 
 typedef struct {
     int x;
     int y;
-    Tile *tile;
+    Map *map;
 } disableCoordArgs;
 
 void *tile_disable_coord_thread(void *buf){
     int val;
 
-    val = tile_disable_coord(((disableCoordArgs *)buf)->tile, ((disableCoordArgs *)buf)->x, ((disableCoordArgs *)buf)->y);
+    val = tile_disable_coord(((disableCoordArgs *)buf)->map, ((disableCoordArgs *)buf)->x, ((disableCoordArgs *)buf)->y);
     if(val)
         atomic_fetch_add(&disable_count, 1);
     return 0x0;
@@ -41,39 +41,39 @@ Test(tiles, test_tile_get_segment){
 }
 
 Test(tiles, test_tile_disable) {
-    Tile *tile;
+    Map *map;
     int i, key;
 
-    tile = tile_create(0, 64, 64);
+    map = tile_create(0, 64, 64);
 
     // test when only bit in char
     key=1;
     for(i=0;i<8;i++){
-        tile_disable_coord(tile, i, 0);
-        cr_assert_eq((tile->collision[0])->segments[0], key, "Disable segment invalid. (Expected %d, Got %d)", (tile->collision[0])->segments[0], key);
-        tile_enable_coord(tile, i, 0);
-        cr_assert_eq((tile->collision[0])->segments[0], 0, "Enable segment invalid. (Expected %d, Got %d)", (tile->collision[0])->segments[0], 0);
+        tile_disable_coord(map, i, 0);
+        cr_assert_eq((map->collision[0])->segments[0], key, "Disable segment invalid. (Expected %d, Got %d)", (map->collision[0])->segments[0], key);
+        tile_enable_coord(map, i, 0);
+        cr_assert_eq((map->collision[0])->segments[0], 0, "Enable segment invalid. (Expected %d, Got %d)", (map->collision[0])->segments[0], 0);
         key = key << 1;
     }
 
     // test when other bits in char
     key=1;
     for(i=0;i<8;i++){
-        tile_disable_coord(tile, i, 0);
-        cr_assert_eq((tile->collision[0])->segments[0], key, "Disable segment invalid. (Expected %d, Got %d)", (tile->collision[0])->segments[0], key);
+        tile_disable_coord(map, i, 0);
+        cr_assert_eq((map->collision[0])->segments[0], key, "Disable segment invalid. (Expected %d, Got %d)", (map->collision[0])->segments[0], key);
         key = (key << 1)+1;
     }
 }
 
 Test(tiles, test_tile_create){
-    Tile *tiles[10000];
+    Map *tiles[10000];
     TileRow *row;
     int i, j, t, segments, width=64, height=64;
 
     segments = tile_get_segments(width-1);
     for(t=0;t<10000;t++){
         tiles[t] = tile_create(8, width, height);
-        cr_assert_eq(tiles[t]->id, 8, "Tile ID is invalid. (Expected 8, Got %d)", tiles[t]->id);
+        cr_assert_eq(tiles[t]->id, 8, "Map ID is invalid. (Expected 8, Got %d)", tiles[t]->id);
         for(i=0;i<height;i++){
             row = tiles[t]->collision[i];
             for(j=0; j<segments; j++)
@@ -92,56 +92,56 @@ Test(tiles, test_tile_occupy_position) {
     disableCoordArgs args;
 
     // setup
-    args.tile = tile_loaders[0]();
+    args.map = tile_loaders[0]();
 
     // test if return value is correct
-    val = tile_disable_coord(args.tile, 0, 0);
+    val = tile_disable_coord(args.map, 0, 0);
     cr_assert_eq(val, 1, "Disable coord when free failed. (Expecting 1, got %d)", val);
-    cr_assert_eq(tile_coord_is_empty(args.tile, 0, 0), 0, "Disable coord did not set coord as empty.");
-    val = tile_disable_coord(args.tile, 0, 0);
+    cr_assert_eq(tile_coord_is_empty(args.map, 0, 0), 0, "Disable coord did not set coord as empty.");
+    val = tile_disable_coord(args.map, 0, 0);
     cr_assert_eq(val, 0, "Disable coord when occupied failed. (Expecting 0, got %d)", val);
-    tile_enable_coord(args.tile, 0, 0);
+    tile_enable_coord(args.map, 0, 0);
 
     // test for race condition
     disable_count = ATOMIC_VAR_INIT(0);;
     iterations = 10000;
     for(i=0; i<iterations; i++){
-        pos = tile_random_coord(args.tile);
+        pos = tile_random_coord(args.map);
         args.x = pos >> 32;
         args.y = pos & 0xffffffff;
         pthread_create(&tid1, 0x0, tile_disable_coord_thread, &args);
         pthread_create(&tid2, 0x0, tile_disable_coord_thread, &args);
         pthread_join(tid1, 0x0);
         pthread_join(tid2, 0x0);
-        tile_enable_coord(args.tile, args.x, args.y);
+        tile_enable_coord(args.map, args.x, args.y);
     }
     cr_assert_eq(atomic_load(&disable_count), iterations, "Iterations invalid. (Expected %d, got %d)", iterations, disable_count);
 }
 
 Test(tiles, test_tile_ref) {
-    Tile *tile;
+    Map *map;
     int i;
     pthread_t tid1, tid2;
 
     tile_unload(0);
-    cr_assert_eq(tile_load(-1), 0x0, "Loading invalid tile attempted to load tile.");
+    cr_assert_eq(tile_load(-1), 0x0, "Loading invalid map attempted to load map.");
     tile_unload(-1);
 
     tile_load(0);
-    cr_assert_neq(tiles[0], 0x0, "Tile 0 is null after being initalized.");
+    cr_assert_neq(tiles[0], 0x0, "Map 0 is null after being initalized.");
     tile_unload(0);
-    cr_assert_eq(tiles[0], 0x0, "Tile 0 is not null after being freed.");
+    cr_assert_eq(tiles[0], 0x0, "Map 0 is not null after being freed.");
     
     // check constant reffing
     for(i=0;i<10000;i++)
         pthread_create(&tid1, 0x0, tile_ref_thread, 0x0);
-    tile = tile_load(0);
-    cr_assert_eq(tile->refs, 10001, "Tile has invalid number of refs. (Expected 10001, Got %d)", tile->refs);
+    map = tile_load(0);
+    cr_assert_eq(map->refs, 10001, "Map has invalid number of refs. (Expected 10001, Got %d)", map->refs);
 
     // check constant unrefing
     for(i=0;i<10000;i++)
         pthread_create(&tid1, 0x0, tile_unref_thread, 0x0);
-    cr_assert_eq(tile->refs, 1, "Tile has invalid number of refs. (Expected 1, Got %d)", tile->refs);
+    cr_assert_eq(map->refs, 1, "Map has invalid number of refs. (Expected 1, Got %d)", map->refs);
     tile_unload(0);
 
     // check contention
@@ -149,8 +149,8 @@ Test(tiles, test_tile_ref) {
         pthread_create(&tid1, 0x0, tile_ref_thread, 0x0);
         pthread_create(&tid2, 0x0, tile_unref_thread, 0x0);
     }
-    tile = tile_load(0);
-    cr_assert_eq(tile->refs, 1, "Tile has invalid number of refs. (Expected 1, Got %d)", tile->refs);
+    map = tile_load(0);
+    cr_assert_eq(map->refs, 1, "Map has invalid number of refs. (Expected 1, Got %d)", map->refs);
 
 
 
