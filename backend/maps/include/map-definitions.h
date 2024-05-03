@@ -1,6 +1,6 @@
 
-#ifndef TILEDEFS_H
-#define TILEDEFS_H
+#ifndef MAPDEFS_H
+#define MAPDEFS_H
 
 #include "map.h"
 

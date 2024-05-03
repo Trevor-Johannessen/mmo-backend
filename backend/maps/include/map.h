@@ -1,5 +1,5 @@
-#ifndef TILE_H
-#define TILE_H
+#ifndef MAP_H
+#define MAP_H
 
 #include <pthread.h>
 #include <stdlib.h>
