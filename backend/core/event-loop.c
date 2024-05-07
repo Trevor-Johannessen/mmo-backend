@@ -23,7 +23,7 @@ void event_loop_start(int fd){
     Packet *packet;
     Session *session;
     Player *player;
-    int tile_id;
+    int map_id;
     char *name, *code, *id;
     struct pollfd poll_args;
     
@@ -57,10 +57,10 @@ void event_loop_start(int fd){
 
     // get info from database (primary key is code)
     player->name = temp_get_name(id);
-    tile_id = 0;
+    map_id = 0;
 
     // spawn player into world
-    if(tile_spawn_player(tile_id, player) == -1){
+    if(map_spawn_player(map_id, player) == -1){
         session_destroy(session);
         event_loop_error(fd, INVALID_AWAITING_CONNECTION);
     }

@@ -8,6 +8,7 @@
 typedef struct {
     int x;
     int y;
+    int max_move;
     struct map *map; // forward inclusion of Map
     char *name;
 } Player;

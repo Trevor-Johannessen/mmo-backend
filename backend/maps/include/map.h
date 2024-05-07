@@ -6,12 +6,12 @@
 #include "../../structures/include/linked-list.h"
 #include "../../player/include/player.h"
 
-typedef struct tile_row {
+typedef struct map_row {
     pthread_mutex_t lock;
     unsigned char segments[];
 } TileRow;
 
-typedef struct tile_event {
+typedef struct map_event {
     int x; // event position
     int y;
     void *func; // function triggered on event activation
@@ -36,25 +36,25 @@ typedef struct {
 } Coordinate;
 
 extern Map *tiles[];
-extern Map *(*tile_loaders[])();
-extern pthread_mutex_t tile_locks[];
+extern Map *(*map_loaders[])();
+extern pthread_mutex_t map_locks[];
 
-int tile_event_activate(int x, int y, void *args);
-int tile_coord_is_empty(Map *map, int x, int y);
-Map *tile_load(int id);
-void tile_unload(int id);
-void tile_initalize();
-TileRow *tile_row_create(int width);
-Map *tile_create(int id, int width, int height);
-int tile_get_segments(int width);
-long tile_spawn_player(int id, Player *player);
-void tile_event_free(TileEvent *event);
-void tile_row_free(int height, TileRow **rows);
-void tile_free(Map *map);
-long tile_random_coord(Map *map);
-int tile_disable_coord(Map *map, int x, int y);
-int tile_enable_coord(Map *map, int x, int y);
-int tile_toggle_coord(Map *map, int x, int y, int disable);
-void tile_lock_init();
+int map_event_activate(int x, int y, void *args);
+int map_coord_is_empty(Map *map, int x, int y);
+Map *map_load(int id);
+void map_unload(int id);
+void map_initalize();
+TileRow *map_row_create(int width);
+Map *map_create(int id, int width, int height);
+int map_get_segments(int width);
+long map_spawn_player(int id, Player *player);
+void map_event_free(TileEvent *event);
+void map_row_free(int height, TileRow **rows);
+void map_free(Map *map);
+long map_random_coord(Map *map);
+int map_disable_coord(Map *map, int x, int y);
+int map_enable_coord(Map *map, int x, int y);
+int map_toggle_coord(Map *map, int x, int y, int disable);
+void map_lock_init();
 
 #endif

@@ -16,7 +16,7 @@ const int SPIN_SEPERATE_AUTH = 0;
 int main(int argc, char* argv[]){
     // preparation
     srand(time(0x0));
-    tile_lock_init();
+    map_lock_init();
     session_populate_list();
 
     // Spin up auth-reciever thread
