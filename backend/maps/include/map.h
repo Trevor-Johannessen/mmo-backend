@@ -6,6 +6,8 @@
 #include "../../structures/include/linked-list.h"
 #include "../../player/include/player.h"
 
+struct player;
+
 typedef struct map_row {
     pthread_mutex_t lock;
     unsigned char segments[];
@@ -40,14 +42,15 @@ extern Map *(*map_loaders[])();
 extern pthread_mutex_t map_locks[];
 
 int map_event_activate(int x, int y, void *args);
-int map_coord_is_empty(Map *map, int x, int y);
+int map_coord_is_walkable(Map *map, int x, int y);
 Map *map_load(int id);
 void map_unload(int id);
 void map_initalize();
 TileRow *map_row_create(int width);
 Map *map_create(int id, int width, int height);
 int map_get_segments(int width);
-long map_spawn_player(int id, Player *player);
+int map_spawn_player(int id, struct player *player, int x, int y);
+long map_spawn_player_random(int id, struct player *player);
 void map_event_free(TileEvent *event);
 void map_row_free(int height, TileRow **rows);
 void map_free(Map *map);

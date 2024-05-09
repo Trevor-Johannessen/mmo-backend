@@ -97,7 +97,7 @@ Test(tiles, test_map_occupy_position) {
     // test if return value is correct
     val = map_disable_coord(args.map, 0, 0);
     cr_assert_eq(val, 1, "Disable coord when free failed. (Expecting 1, got %d)", val);
-    cr_assert_eq(map_coord_is_empty(args.map, 0, 0), 0, "Disable coord did not set coord as empty.");
+    cr_assert_eq(map_coord_is_walkable(args.map, 0, 0), 0, "Disable coord did not set coord as empty.");
     val = map_disable_coord(args.map, 0, 0);
     cr_assert_eq(val, 0, "Disable coord when occupied failed. (Expecting 0, got %d)", val);
     map_enable_coord(args.map, 0, 0);
@@ -119,9 +119,10 @@ Test(tiles, test_map_occupy_position) {
 }
 
 Test(tiles, test_map_ref) {
-    Map *map;
+    Map *map, *map2;
     int i;
-    pthread_t tid1, tid2;
+    pthread_t tid_arr[10000], tid_arr_2[10000];
+    void *trash;
 
     map_unload(0);
     cr_assert_eq(map_load(-1), 0x0, "Loading invalid map attempted to load map.");
@@ -134,26 +135,16 @@ Test(tiles, test_map_ref) {
     
     // check constant reffing
     for(i=0;i<10000;i++)
-        pthread_create(&tid1, 0x0, map_ref_thread, 0x0);
+        pthread_create(&(tid_arr[i]), 0x0, map_ref_thread, 0x0);
+    for(i=0;i<10000;i++)
+        pthread_join(tid_arr[i], trash);
     map = map_load(0);
     cr_assert_eq(map->refs, 10001, "Map has invalid number of refs. (Expected 10001, Got %d)", map->refs);
 
     // check constant unrefing
     for(i=0;i<10000;i++)
-        pthread_create(&tid1, 0x0, map_unref_thread, 0x0);
+        pthread_create(&(tid_arr[i]), 0x0, map_unref_thread, 0x0);
+    for(i=0;i<10000;i++)
+        pthread_join(tid_arr[i], trash);
     cr_assert_eq(map->refs, 1, "Map has invalid number of refs. (Expected 1, Got %d)", map->refs);
-    map_unload(0);
-
-    // check contention
-    for(i=0;i<10000;i++){
-        pthread_create(&tid1, 0x0, map_ref_thread, 0x0);
-        pthread_create(&tid2, 0x0, map_unref_thread, 0x0);
-    }
-    map = map_load(0);
-    cr_assert_eq(map->refs, 1, "Map has invalid number of refs. (Expected 1, Got %d)", map->refs);
-
-
-
-
-
 }

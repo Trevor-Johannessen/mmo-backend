@@ -18,7 +18,10 @@ void event_loop_error(int fd, int code){
     }
     ws_close(fd, 1008);
 }
-
+/*
+    I don't know how I feel about this. Should we have a persistent thread running for every active connection, or a thread pool to
+    poll all open file descriptors? I think this can be implemented at a later date since it would still derive from the logic here.
+*/
 void event_loop_start(int fd){
     Packet *packet;
     Session *session;
@@ -57,12 +60,14 @@ void event_loop_start(int fd){
 
     // get info from database (primary key is code)
     player->name = temp_get_name(id);
+    player->max_move = 1;
     map_id = 0;
 
     // spawn player into world
-    if(map_spawn_player(map_id, player) == -1){
+    if(map_spawn_player_random(map_id, player) == -1){
         session_destroy(session);
         event_loop_error(fd, INVALID_AWAITING_CONNECTION);
+        return;
     }
 
     while(1){

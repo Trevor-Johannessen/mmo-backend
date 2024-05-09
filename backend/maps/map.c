@@ -13,7 +13,7 @@ int map_event_activate(int x, int y, void *args){
 
 }
 
-int map_coord_is_empty(Map *map, int x, int y){
+int map_coord_is_walkable(Map *map, int x, int y){
     int segment;
     segment = map_get_segments(x);
     return !((map->collision[y])->segments[segment] & (0x1<<(x&0x7)));
@@ -39,7 +39,7 @@ int map_toggle_coord(Map *map, int x, int y, int disable){
 
     pthread_mutex_lock(&((map->collision[y])->lock));
     // check if position is valid
-    if(disable && !map_coord_is_empty(map, x, y)){
+    if(disable && !map_coord_is_walkable(map, x, y)){
         pthread_mutex_unlock(&((map->collision[y])->lock));
         return 0;
     }
@@ -61,11 +61,35 @@ long map_random_coord(Map *map){
         x = rand() % map->width;
         y = rand() % map->height;
     // check that coords are valid
-    }while(!map_coord_is_empty(map, x, y));
+    }while(!map_coord_is_walkable(map, x, y));
     return (long)x<<32 | (y & 0xffffffff);
 }
 
-long map_spawn_player(int id, Player *player){
+int map_spawn_player(int id, Player *player, int x, int y){
+    Map *map;
+
+    if(id < 0 || id > MAP_COUNT)
+        return 0;
+
+    // get map
+    map = map_load(id);
+    player->map = map;
+
+    // add player to map
+    map->players = link_add_first(map->players, player);
+    player->x = x;
+    player->y = y;
+    
+    // set coordinate to be invalid
+    if(!map_disable_coord(map, player->x, player->y)){
+        map_unload(id);
+        return 0;
+    }
+    
+    return 1;
+}
+
+long map_spawn_player_random(int id, Player *player){
     long pos;
     Map *map;
 
@@ -73,7 +97,7 @@ long map_spawn_player(int id, Player *player){
         return -1;
 
     // get map
-    map = map_loaders[id]();
+    map = map_load(id);
     player->map = map;
 
     // get random coordinate
@@ -87,8 +111,10 @@ long map_spawn_player(int id, Player *player){
     map->players = link_add_first(map->players, player);
 
     // set coordinate to be invalid
-    if(!map_disable_coord(map, player->x, player->y))
+    if(!map_disable_coord(map, player->x, player->y)){
+        map_unload(id);
         return -1;
+    }
     // return coordinates
     return pos;
 }
