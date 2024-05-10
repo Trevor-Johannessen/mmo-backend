@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdatomic.h>
+#include <stdlib.h>
 #include "../player/include/movement.h"
 #include "../player/include/player.h"
 #include "../maps/include/map.h"
@@ -13,14 +14,13 @@ void *move_player_thread(void *player){
 
 Test(player, test_player_create) {
     Player *player;
-
     // test uninitalized player
     player = player_create();
     player_free(player);
 
     // test initalized player
     player = player_create();
-    player->name = malloc(4);
+    player->name = malloc(5);
     memset(player->name, 0, 4);
     strncpy(player->name, "Sam", 3);
     player->max_move = 1;  
@@ -64,7 +64,7 @@ Test(player, test_player_move) {
     // test contested movement
     for(i=0;i<10000;i++){
         // check if spot is valid
-        cr_assert(map_coord_is_walkable(sam->map, 5, 4), "The requested tile is not walkable before players have attempted movement.");
+        cr_assert(map_coord_is_walkable(sam->map, 5, 4), "The requested tile is not walkable before players have attempted movement. (Iteration %d)", i+1);
 
         // move players to same spot
         pthread_create(&tid1, 0x0, move_player_thread, sam);
@@ -79,11 +79,8 @@ Test(player, test_player_move) {
         cr_assert_neq(sam->x, cid->x, "Players are overlapping.");
 
         // reset players positions
-        sam->x = 4;
-        cid->x = 6;
-
-        // revalidate spot
-        map_enable_coord(sam->map, 4, 5);
+        player_move(sam, 4, 4);
+        player_move(cid, 6, 4);
     }
 
     player_free(sam);
