@@ -5,6 +5,7 @@
 #define INVALID_AWAITING_CONNECTION 2
 #define BAD_PACKET 3
 
+extern int packet_errno;
 extern char *error_strings[];
 extern int error_length;
 #endif

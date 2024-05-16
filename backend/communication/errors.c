@@ -6,3 +6,4 @@ char *error_strings[] = {
 };
 
 int error_length = sizeof(error_strings) / sizeof(error_strings[0]);
+int packet_errno = 0;

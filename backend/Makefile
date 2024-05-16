@@ -12,7 +12,7 @@ test:
 	gcc -g -o test $(SRCS) $(PKGS) $(TEST) -lcriterion
 
 debug:
-	gcc -g -o out $(SRCS) $(PKGS) 
+	gcc -g -o out main.c $(SRCS) $(PKGS) 
 
 clean:
 	rm -f $(OBJS)

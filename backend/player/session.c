@@ -2,13 +2,12 @@
 
 StateArray **session_valid_packets;
 
-Session *session_create(Player *player, char *id, int fd){
+Session *session_create(Player *player, int fd){
     Session *session;
     
     session = malloc(sizeof(session));
     memset(session, 0, sizeof(session));
     session->player = player;
-    session->id = id;
     session->state = DISABLED;
     session->fd = fd;
     return session;
@@ -19,14 +18,22 @@ void session_destroy(Session *session){
         return;
     if(session->player)
         player_free(session->player);
-    free(session->id);
     free(session);
 }
 
-int session_verify_packet(Session *session, unsigned char opcode){
+int session_verify_packet(Session *session, Packet *packet){
     // get current state array
     // binary search to find if opcode is in array
-    return 1;
+    // OPTIMIZATION: Replace this O(n) search with Binary Search
+    int i, opcode;
+    StateArray *arr;
+
+    opcode = packet->opcode;
+    arr = session_valid_packets[session->state];
+    for(i=0;i<arr->size;i++)
+        if(arr->valid_packet_types[i] == opcode)
+            return 1;
+    return 0;
 }
 
 void session_populate_list(){
@@ -36,49 +43,25 @@ void session_populate_list(){
     length = FOOTER;
     session_valid_packets = malloc(((int)length-1) * sizeof(StateArray *));
 
-    /* !!! ARRAY MUST BE SORTED !!! */
+    /* !!! SUB ARRAYS MUST BE SORTED (by enum value) TO BINARY SEARCH FOR CORRECT PACKET !!! */
     /* This syntax is bad, please fix if possible */
 
 
     // DISABLED
-    session_valid_packets[0] = malloc(sizeof(int) + sizeof(State)*1);
-    session_valid_packets[0]->size = 1;
     StateArray disabled = {LOGIN_PACKET};
+    session_valid_packets[0] = malloc(sizeof(int) + sizeof(State)*(sizeof(disabled) / sizeof(StateArray)));
+    session_valid_packets[0]->size = sizeof(disabled) / sizeof(StateArray);
     memcpy(session_valid_packets[0]->valid_packet_types, &disabled, sizeof(disabled));
 
-	// MOVING
-    session_valid_packets[1] = malloc(sizeof(int) + sizeof(State)*1);
-    session_valid_packets[1]->size = 1;
-    StateArray moving = {LOGIN_PACKET};
-    memcpy(session_valid_packets[0]->valid_packet_types, &moving, sizeof(moving));
-
-	// IN_MENU
-    session_valid_packets[2] = malloc(sizeof(int) + sizeof(State)*1);
-    session_valid_packets[2]->size = 1;
-    StateArray in_menu = {LOGIN_PACKET};
-    memcpy(session_valid_packets[0]->valid_packet_types, &in_menu, sizeof(in_menu));
-
-	// PAUSED
-    session_valid_packets[3] = malloc(sizeof(int) + sizeof(State)*1);
-    session_valid_packets[3]->size = 1;
-    StateArray paused = {LOGIN_PACKET};
-    memcpy(session_valid_packets[0]->valid_packet_types, &paused, sizeof(paused));
-    
-    // IN_GAME
-    session_valid_packets[4] = malloc(sizeof(int) + sizeof(State)*1);
-    session_valid_packets[4]->size = 1;
-    StateArray in_game = {LOGIN_PACKET};
-    memcpy(session_valid_packets[0]->valid_packet_types, &in_game, sizeof(in_game));
-
-	// IN_CUSTOM_SCREEN
-    session_valid_packets[5] = malloc(sizeof(int) + sizeof(State)*1);
-    session_valid_packets[5]->size = 1;
-    StateArray in_custom_screen = {LOGIN_PACKET};
-    memcpy(session_valid_packets[0]->valid_packet_types, &in_custom_screen, sizeof(in_custom_screen));
+	// ROAMING
+    StateArray roaming = {MOVE_PACKET};
+    session_valid_packets[1] = malloc(sizeof(int) + sizeof(State)*(sizeof(roaming) / sizeof(StateArray)));
+    session_valid_packets[1]->size = sizeof(roaming) / sizeof(StateArray);
+    memcpy(session_valid_packets[1]->valid_packet_types, &roaming, sizeof(roaming));
 	
     // FOOTER
-    session_valid_packets[6] = malloc(sizeof(int) + sizeof(State)*0);
-    session_valid_packets[6]->size = 0;
+    session_valid_packets[length] = malloc(sizeof(int) + sizeof(State)*0);
+    session_valid_packets[length]->size = 0;
 
 }
 
