@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "../../structures/include/linked-list.h"
 #include "../../player/include/player.h"
+#include "../../communication/include/packet.h"
 
 struct player;
 
@@ -58,6 +59,7 @@ long map_random_coord(Map *map);
 int map_disable_coord(Map *map, int x, int y);
 int map_enable_coord(Map *map, int x, int y);
 int map_toggle_coord(Map *map, int x, int y, int disable);
+void map_send_packet(Map *map, Packet *packet);
 void map_lock_init();
 
 #endif

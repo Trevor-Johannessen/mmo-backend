@@ -103,7 +103,7 @@ Test(tiles, test_map_occupy_position) {
     map_enable_coord(args.map, 0, 0);
 
     // test for race condition
-    disable_count = ATOMIC_VAR_INIT(0);;
+    disable_count = ATOMIC_VAR_INIT(0);
     iterations = 10000;
     for(i=0; i<iterations; i++){
         pos = map_random_coord(args.map);
