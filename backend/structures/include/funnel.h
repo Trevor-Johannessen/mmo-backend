@@ -1,6 +1,8 @@
 #ifndef FUNNEL_H
 #define FUNNEL_H
 
+#define _GNU_SOURCE // needed for some linux thread scheduling
+
 #include <pthread.h>
 #include <sched.h>
 #include <stdatomic.h>
@@ -28,8 +30,10 @@ Funnel *funnel_create();
 void funnel_free(Funnel *funnel, int drop_packets);
 void funnel_enqueue(Funnel *funnel, Link *link);
 Link *funnel_dequeue(Funnel *funnel);
-void funnel_sleep(Funnel *funnel);
-void funnel_wakeup(Funnel *funnel);
+void funnel_expand(Funnel *funnel);
+void funnel_contract(Funnel *funnel);
+void funnel_sleep(Funnel *funnel, int index);
+void funnel_wakeup(Funnel *funnel, int index);
 void *funnel_thread_start(void *funnel);
 
 #endif

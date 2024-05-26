@@ -83,6 +83,9 @@ void funnel_enqueue(Funnel *funnel, Link *link){
     if(grabbed_head_mutex)
         pthread_mutex_unlock(&funnel->head_lock);
     pthread_mutex_unlock(&funnel->tail_lock);
+
+    // try to expand
+    funnel_expand(funnel);
 }
 
 Link *funnel_dequeue(Funnel *funnel){
@@ -111,73 +114,89 @@ Link *funnel_dequeue(Funnel *funnel){
         out = funnel->head;
         funnel->head = funnel->head->next;
     }
+    atomic_fetch_add(&funnel->queue_size, -1);
 
     // release locks
     pthread_mutex_unlock(&funnel->head_lock);
     if(grabbed_tail_mutex)
         pthread_mutex_unlock(&funnel->tail_lock);
 
+    // try to contract
+    funnel_contract(funnel);
+
     // return head
     return out;
 }
 
-void funnel_sleep(Funnel *funnel){
+void funnel_sleep(Funnel *funnel, int index){
+    struct sched_param param;
+
     // grab lock
     pthread_mutex_lock(&funnel->thread_lock);
 
-    // reschedule threads
-    // for(i=0;i<funnel->thread_count;i++)
-    //     pthread_setschedparam(funnel->tids[i], SCHED_IDLE);
-
-    // set funnel as inactive
+    // reschedule current thread
+    param.sched_priority = 0;
+    pthread_setschedparam(funnel->tids[index], SCHED_IDLE, &param);
     funnel->active = 0;
 
     // release lock
     pthread_mutex_lock(&funnel->thread_lock);
 }
 
-void funnel_wakeup(Funnel *funnel){
-    int i;
+void funnel_wakeup(Funnel *funnel, int index){
+    struct sched_param param;
 
     // grab lock
     pthread_mutex_lock(&funnel->thread_lock);
 
     // reschedule threads
-    // for(i=0;i<funnel->thread_count;i++)
-    //     pthread_setschedparam(funnel->tids[i], SCHED_OTHER);
-
-    // set funnel as active
+    param.sched_priority = 0;
+    pthread_setschedparam(funnel->tids[index], SCHED_OTHER, &param);
     funnel->active = 1;
 
     // release lock
     pthread_mutex_lock(&funnel->thread_lock);
 }
 
-void funnel_thread_resize(Funnel *funnel){
-    // grab lock
+void funnel_expand(Funnel *funnel){
+    // check size
+    if(funnel->queue_size < funnel->thread_count * funnel->new_thread_interval)
+        return;
+
+    // grab head and thread lock
+    pthread_mutex_lock(&funnel->head_lock);
     pthread_mutex_lock(&funnel->thread_lock);
 
-    // if size is zero, sleep
-    if(!(atomic_load(&(funnel->queue_size)))){
-        funnel_sleep(funnel);
-        goto funnel_cleanup; // early leave
-    }
-
-    // if size greater than next threshold, increase threads
-    while((atomic_load(&(funnel->queue_size))) > funnel->new_thread_interval*funnel->thread_count){
+    // check size
+    if(funnel->queue_size >= funnel->thread_count * funnel->new_thread_interval){
+        // spin new thread
+        pthread_create(&funnel->tids[funnel->thread_count], 0x0, funnel_thread_start, (void *)funnel);
         funnel->thread_count++;
-        pthread_create(&(funnel->tids[funnel->thread_count-1]), 0x0, funnel_thread_start, funnel);
     }
 
-    // if size is under threshold by a large margin, decrease threads 
-    while((atomic_load(&(funnel->queue_size))) < funnel->new_thread_interval*(funnel->thread_count-1)){
-        // kill newest thread
-        funnel->tids[funnel->thread_count-1] = 0x0;
+    // release locks
+    pthread_mutex_unlock(&funnel->head_lock);
+    pthread_mutex_unlock(&funnel->thread_lock);
+}
+
+void funnel_contract(Funnel *funnel){
+    // check size
+    if(funnel->queue_size > (funnel->thread_count-1) * funnel->new_thread_interval)
+        return;
+
+    // grab tail and thread lock
+    pthread_mutex_lock(&funnel->tail_lock);
+    pthread_mutex_lock(&funnel->thread_lock);
+
+    // check size
+    if(funnel->queue_size <= (funnel->thread_count-1) * funnel->new_thread_interval){
+        // spin new thread
         funnel->thread_count--;
+        funnel->tids[funnel->thread_count] = 0;
     }
-    
-    // release lock
-    funnel_cleanup:
+
+    // release locks
+    pthread_mutex_unlock(&funnel->tail_lock);
     pthread_mutex_unlock(&funnel->thread_lock);
 }
 
@@ -188,6 +207,9 @@ void *funnel_thread_start(void *funnel_in){
     Link *link;
 
     funnel = (Funnel *)funnel_in;
+
+    // detatch self
+    pthread_detach(pthread_self());
 
     // find tid index in array
     my_tid = pthread_self();
@@ -203,33 +225,23 @@ void *funnel_thread_start(void *funnel_in){
             continue;
 
         // check if size is greater than zero
-        if(!(atomic_load(&(funnel->queue_size)))){
+        if((tid_index > 0) && !(atomic_load(&(funnel->queue_size)))){
             pthread_mutex_lock(&funnel->head_lock);
             pthread_mutex_lock(&funnel->tail_lock);
             if(!(atomic_load(&(funnel->queue_size))))
-                funnel_thread_resize(funnel);
-            // unlocking is low priority, will this cause delayed packets???
+                funnel_sleep(funnel, tid_index);
             pthread_mutex_unlock(&funnel->head_lock);
             pthread_mutex_unlock(&funnel->tail_lock);
             continue;
         }
 
-        // obtain head lock
-        pthread_mutex_lock(&funnel->head_lock);
-
         // dequeue Link
-        if((atomic_load(&(funnel->queue_size))) > 0)
-            link = funnel_dequeue(funnel);
-
-        // release head lock
-        pthread_mutex_unlock(&funnel->head_lock);
+        if(!(link = funnel_dequeue(funnel)))
+            continue;
 
         // operate on Link (add function pointer to struct)
         funnel->func(link->payload);
-
-        // decrement funnel count (this is done to prevent threads from sleeping prematurely)
-        atomic_fetch_add(&funnel->queue_size, -1);
-
+        
         // cleanup
         free(link);
     }

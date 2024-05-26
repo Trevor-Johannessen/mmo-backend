@@ -9,6 +9,10 @@ void map_lock_init(){
     }
 }
 
+void map_send_packet(Map *map, Packet *packet){
+
+}
+
 int map_event_activate(int x, int y, void *args){
 
 }
