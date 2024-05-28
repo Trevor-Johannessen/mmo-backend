@@ -10,7 +10,8 @@ typedef struct link {
 } Link;
 
 //#DEFINE linked_list_iterate(x) for(x=0x0; link_next(x); x=link_next(x))
-
+Link *link_create();
+void link_free(Link *link);
 Link *link_next(Link *cur);
 int link_has_next(Link *cur);
 void link_map(Link *head, void (*func)(void *));
