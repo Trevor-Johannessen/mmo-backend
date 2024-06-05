@@ -32,5 +32,9 @@ int player_move(Player *player, int x, int y){
     player->x = x;
     player->y = y;
 
+    // update other players on new position
+    
+
+
     return 1;
 }

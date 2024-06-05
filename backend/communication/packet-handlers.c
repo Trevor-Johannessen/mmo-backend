@@ -8,10 +8,6 @@ Packet *packet_handle_route(Packet *packet, Session *session){
             return packet_handle_login(packet, session);
         case LOGOUT_PACKET:
             return packet_handle_logout(packet, session);
-        case SUCCESS_PACKET:
-            return packet_handle_success(packet, session);
-        case FAILURE_PACKET:
-            return packet_handle_failure(packet, session);
         case MOVE_PACKET:
             return packet_handle_move(packet, session);
         default:
@@ -52,14 +48,6 @@ Packet *packet_handle_login(Packet *packet, Session *session){
 }
 
 Packet *packet_handle_logout(Packet *packet, Session *session){
-
-}
-
-Packet *packet_handle_success(Packet *packet, Session *session){
-
-}
-
-Packet *packet_handle_failure(Packet *packet, Session *session){
 
 }
 
