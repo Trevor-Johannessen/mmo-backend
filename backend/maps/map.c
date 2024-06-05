@@ -10,12 +10,12 @@ void map_lock_init(){
 }
 
 
-void map_send_packet(Map *map, Packet *packet){
+void map_send_packet(Map *map, Packet *packet, Player *exception){
     Link *link;
     Player *player;
     for(link=map->players;link;link=link_next(link)){
         player = (Player *)(link->payload);
-        if(player->session){
+        if(player->session && player != exception){
             packet_write(player->session->fd, packet);
         }
     }

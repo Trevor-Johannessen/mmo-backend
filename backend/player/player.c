@@ -36,7 +36,7 @@ int player_move(Player *player, int x, int y){
 
     // update other players on new position
     packet = packet_template_update_position(player->name, x, y);
-    map_send_packet(player->map, packet);
+    map_send_packet(player->map, packet, player);
 
     return 1;
 }
