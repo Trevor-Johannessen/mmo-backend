@@ -22,6 +22,7 @@ void event_loop_start(int fd){
     // Set up structs needed for a connection
     player = player_create();
     session = session_create(player, fd);
+    player->session = session;
 
     // set up polling
     poll_args.fd = fd;

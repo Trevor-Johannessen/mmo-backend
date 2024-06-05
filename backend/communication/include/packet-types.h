@@ -4,7 +4,6 @@
 
 #include "packet.h"
 #include "errors.h"
-#include "../../player/include/player.h"
 
 // Opcodes
 // #define C_NAME code
@@ -14,7 +13,8 @@
 #define SUCCESS_PACKET 3
 #define FAILURE_PACKET 4
 #define MOVE_PACKET 5
-#define BAD_STATE 6
+#define MOVED_PACKET 6
+#define BAD_STATE 7
 
 // INCOMING PACKETS
 Packet *packet_template(unsigned char opcode);
@@ -27,6 +27,6 @@ Packet *packet_template_error(int code);
 Packet *packet_template_success();
 Packet *packet_template_failure();
 Packet *packet_template_bad_state();
-Packet *packet_template_update_position(Player *player);
+Packet *packet_template_update_position(char *name, int x, int y);
 
 #endif

@@ -6,13 +6,16 @@
 #include <string.h>
 #include "movement.h"
 #include "../../maps/include/map.h"
+#include "../../communication/include/packet-types.h"
+#include "session.h"
 
 typedef struct player {
     int x;
     int y;
     int max_move;
-    struct map *map; // forward inclusion of Map
-    char *name;
+    struct map *map;
+    struct session *session;
+    char *name; // names must be UNIQUE
 } Player;
 
 Player *player_create();

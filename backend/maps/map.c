@@ -9,8 +9,16 @@ void map_lock_init(){
     }
 }
 
-void map_send_packet(Map *map, Packet *packet){
 
+void map_send_packet(Map *map, Packet *packet){
+    Link *link;
+    Player *player;
+    for(link=map->players;link;link=link_next(link)){
+        player = (Player *)(link->payload);
+        if(player->session){
+            packet_write(player->session->fd, packet);
+        }
+    }
 }
 
 int map_event_activate(int x, int y, void *args){

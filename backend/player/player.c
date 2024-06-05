@@ -16,6 +16,8 @@ void player_free(Player *player){
 }
 
 int player_move(Player *player, int x, int y){
+    Packet *packet;
+
     // check if player can move that far
     if(!movement_check_valid(player->max_move, player->x, player->y, x ,y))
         return 0;
@@ -33,8 +35,8 @@ int player_move(Player *player, int x, int y){
     player->y = y;
 
     // update other players on new position
-    
-
+    packet = packet_template_update_position(player->name, x, y);
+    map_send_packet(player->map, packet);
 
     return 1;
 }
