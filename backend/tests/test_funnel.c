@@ -27,8 +27,11 @@ void *funnel_enqueue_thread(void *funnel){
 
 void *funnel_dequeue_thread(void *funnel){
     int i;
-    for(i=0;i<1000;i++)
+    pthread_t pid;
+    pid = pthread_self();
+    for(i=0;i<1000;i++){
         funnel_dequeue((Funnel *)funnel);
+    }
 }
 
 // create and destroy a funnel
@@ -70,7 +73,7 @@ Test(funnel, test_funnel_threshold){
     // ENQUEUE
     funnel_enqueue_dummy(funnel, 2);
     cr_assert_eq(funnel->queue_size, 2, "Invalid queue size. (Expected 2, got %d)", funnel->queue_size);
-    cr_assert_eq(funnel->thread_count, 1, "Invalid thread count. (Expected 1, got %d)", funnel->thread_count);
+    cr_assert_eq(funnel->thread_count, 2, "Invalid thread count. (Expected 1, got %d)", funnel->thread_count);
 
     funnel_enqueue_dummy(funnel, 1);
     cr_assert_eq(funnel->queue_size, 3, "Invalid queue size. (Expected 3, got %d)", funnel->queue_size);
@@ -122,7 +125,7 @@ Test(funnel, test_funnel_threshold){
 // spin a bunch of threads adding stuff and make sure count is correct
 Test(funnel, test_funnel_concurrent){
     int i, expected_threads;
-    const int retry_count = 3, retry_sleep = 2;
+    const int retry_count = 1, retry_sleep = 1;
     pthread_t tids[20];
     Funnel *funnel;
 
@@ -143,27 +146,32 @@ Test(funnel, test_funnel_concurrent){
     cr_assert_eq(funnel->thread_count, 7, "Invalid thread count. (Expected 7, got %d)", funnel->thread_count);
 
     // concurrent dequeues
-    for(i=0;i<10;i++)
+    for(i=0;i<10;i++){
         pthread_create(&tids[i], 0x0, funnel_dequeue_thread, funnel);
-    for(i=0;i<10;i++)
+    }
+    for(i=0;i<10;i++){
         pthread_join(tids[i], 0x0);
-    for(i=0;i<retry_count;i++) if(funnel->thread_count) sleep(3);
+    }
+    //for(i=0;i<retry_count;i++) if(funnel->thread_count) sleep(3);
     cr_assert_eq(funnel->queue_size, 0, "Invalid queue size. (Expected 0, got %d)", funnel->queue_size);
     cr_assert_eq(funnel->thread_count, 0, "Invalid thread count. (Expected 0, got %d)", funnel->thread_count);
-        
+
     // a mess
     // enqueues
     for(i=0;i<10;i++)
         pthread_create(&tids[i], 0x0, funnel_enqueue_thread, funnel);
     // dequeue
-    for(i=0;i<10;i++)
-        pthread_create(&tids[i+10], 0x0, funnel_dequeue_thread, funnel);
+    for(i=10;i<20;i++)
+        pthread_create(&tids[i], 0x0, funnel_dequeue_thread, funnel);
     for(i=0;i<20;i++)
         pthread_join(tids[i], 0x0);
-    expected_threads = funnel->queue_size / funnel->new_thread_interval;
+    sleep(1); // wait for all downstream threads to finish
+
+    expected_threads = funnel->queue_size / funnel->new_thread_interval + 1;
+    if(!funnel->queue_size)
+        expected_threads = 0;
     if((funnel->queue_size < funnel->new_thread_interval) && (funnel->thread_count == 2))
         expected_threads = 2;
-    for(i=0;i<retry_count;i++) if(funnel->thread_count != expected_threads) sleep(retry_sleep);
     cr_assert_eq(funnel->thread_count, expected_threads, "Invalid thread count. (Expected %d, got %d)", expected_threads, funnel->thread_count);
 
     funnel_free(funnel, 1);

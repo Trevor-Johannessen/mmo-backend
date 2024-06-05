@@ -13,9 +13,9 @@
 
 typedef struct {
     int new_thread_interval; // size queue needs to grow before the next thread is created
-    int thread_count;
     int active; // boolean for whether the funnel is in sleep mode or not
     int enabled; // boolean for manually enabling/disabling the loop
+    atomic_int thread_count;
     atomic_int queue_size;
     pthread_t tids[MAX_FUNNEL_THREADS]; 
     pthread_mutex_t head_lock;
