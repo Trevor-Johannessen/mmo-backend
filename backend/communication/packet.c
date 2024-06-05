@@ -13,7 +13,8 @@ Packet *packet_read(int fd){
     frame = ws_read_frame(fd);
     packet->length = ws_length(frame)-sizeof(packet->opcode);
     packet->opcode = frame->data[0];
-    packet->data = frame->data+sizeof(packet->opcode)+sizeof(packet->length);
+    packet->data = malloc(sizeof(char) * packet->length);
+    memcpy(packet->data, frame->data+sizeof(packet->opcode)+sizeof(packet->length), packet->length);
 
     // debug
     fprintf(stdout, "opcode: %d\nlength: %ld\n", packet->opcode, packet->length);
@@ -55,6 +56,6 @@ Packet *packet_create(unsigned char opcode, void *data, long len){
 
 void packet_free(Packet *packet){
     if(packet->data)
-        free(packet->data-sizeof(packet->opcode)-sizeof(packet->length));
+        free(packet->data);
     free(packet);
 }
