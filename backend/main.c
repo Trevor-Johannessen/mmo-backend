@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h> // sleep for linux
 #include <time.h>
+#include <mongoc/mongoc.h>
 #include "structures/include/linked-list.h"
 #include "player/include/session.h"
 #include "maps/include/map.h"
@@ -18,6 +19,7 @@ int main(int argc, char* argv[]){
     srand(time(0x0));
     map_lock_init();
     session_populate_list();
+    mongoc_init();
 
     // Spin up auth-reciever thread
     pthread_t auth_reciever_tid;
@@ -35,4 +37,9 @@ int main(int argc, char* argv[]){
     fprintf(stdout, "Starting web server...\n");
     web_server_start(WEB_PORT);
     return 1;
+}
+
+// TODO: call this on SIGINT
+int cleanup(){
+    mongoc_cleanup();
 }
