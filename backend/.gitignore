@@ -1,2 +1,5 @@
 ./Unity
 ./out
+./test
+../.vscode/
+../request-tester/packets/__pycache__/

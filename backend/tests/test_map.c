@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdatomic.h>
 #include "../maps/include/map.h"
+#include "../maps/include/map-definitions.h"
 
 atomic_int disable_count;
 
@@ -92,7 +93,7 @@ Test(tiles, test_map_occupy_position) {
     disableCoordArgs args;
 
     // setup
-    args.map = map_loaders[0]();
+    args.map = map_loaders[MAP_TEST]();
 
     // test if return value is correct
     val = map_disable_coord(args.map, 0, 0);

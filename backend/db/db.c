@@ -9,6 +9,14 @@ char *db_get_name(char *id){
     return name;
 }
 
+char *bson_get_string(bson_iter_t *iter){
+    void *out;
+    const char *hold = bson_iter_utf8(iter, NULL);
+    const int size = strlen(hold);
+    out = malloc(size);
+    memcpy(out, hold, size);
+    return out;
+}
 
 MongoConnection *db_connect(){
     MongoConnection *conn;
@@ -25,7 +33,7 @@ MongoConnection *db_connect(){
     // get client
     connection_string = getenv("MMO_MONGO_CONNECTION_STRING");
     conn->client = mongoc_client_new(connection_string);
-    free(connection_string);
+    //free(connection_string);
     if(!conn->client)
         goto mongo_connection_create_cleanup;
 
@@ -57,4 +65,11 @@ MongoConnection *db_connect(){
     }
 
     return conn;
+}
+
+void db_free(MongoConnection *conn){
+    mongoc_database_destroy(conn->database);
+    mongoc_server_api_destroy(conn->api);
+    mongoc_client_destroy(conn->client);
+    free(conn);
 }

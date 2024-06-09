@@ -26,7 +26,6 @@ Test(player, test_player_create) {
     player->max_move = 1;  
     map_spawn_player(0, player, 4, 4);
     player_free(player);
-    
 }
 
 Test(player, test_player_move) {

@@ -27,6 +27,6 @@ Packet *packet_template_error(int code);
 Packet *packet_template_success();
 Packet *packet_template_failure();
 Packet *packet_template_bad_state();
-Packet *packet_template_update_position(char *name, int x, int y);
+Packet *packet_template_update_position(char *id, int x, int y);
 
 #endif

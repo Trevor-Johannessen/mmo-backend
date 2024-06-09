@@ -47,16 +47,19 @@ Packet *packet_template_error(int code){
     return packet_create(ERROR, msg, strlen(msg));
 }
 
-Packet *packet_template_update_position(char *name, int x, int y){
+Packet *packet_template_update_position(char *id, int x, int y){
     int size;
     char *body;
 
-    size = sizeof(int)*2 + strlen(name);
+    if(!id)
+        return 0x0;
+
+    size = sizeof(int)*2 + strlen(id);
     body = malloc(size);
 
     ((int *)body)[0] = x;
     ((int *)body)[1] = y;
-    strcpy(body+sizeof(int)*2, name);
+    strcpy(body+sizeof(int)*2, id);
 
     return packet_create(MOVED_PACKET, body, size);
 }

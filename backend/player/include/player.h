@@ -15,11 +15,12 @@ typedef struct player {
     int max_move;
     struct map *map;
     struct session *session;
-    char *name; // names must be UNIQUE
+    char *name; 
+    char *id;
 } Player;
 
 Player *player_create();
 void player_free(Player *player);
 int player_move(Player *player, int x, int y);
-
+void player_print(Player *player);
 #endif

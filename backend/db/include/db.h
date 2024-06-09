@@ -12,10 +12,9 @@ typedef struct mongo_connection {
 } MongoConnection;
 
 MongoConnection *db_connect();
-
+char *bson_get_string(bson_iter_t *iter);
 char *db_get_name(char *id);
-
-
+void db_free(MongoConnection *conn);
 
 
 #endif

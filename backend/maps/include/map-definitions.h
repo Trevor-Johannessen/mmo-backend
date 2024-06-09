@@ -5,6 +5,7 @@
 #include "map.h"
 
 #define MAP_COUNT 1
+#define MAP_TEST 0
 
 extern Map *tiles[MAP_COUNT];
 extern Map *(*map_loaders[MAP_COUNT])();
