@@ -48,7 +48,7 @@ void *web_server_handle_client(void* ci){
     HeaderList *headers;
 
     err=0;
-    br = br_init(((ConnInfo *)ci)->fd, 128);
+    br = br_init(((ConnInfo *)ci)->fd, 4096);
     client_addr = ((ConnInfo *)ci)->client_addr;
     free(ci);
     client_len = sizeof(client_addr);
