@@ -60,7 +60,7 @@ void *start_auth_reciever(void* port){
     poll_args.events = POLLIN;
     poll_args.revents = 0;
 
-    for(int i=0; i<REPS; i++){
+    while(1){
         id = malloc(sizeof(char) * (id_size+1));
         token = malloc(sizeof(char) * (TOKEN_SIZE+1));
         memset(id, 0, sizeof(char) * (id_size+1));
