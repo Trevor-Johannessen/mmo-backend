@@ -20,12 +20,14 @@ HeaderList *header_list_parse_headers(BufferedReader *br){
             header_list_destroy(head);
             return 0x0;
         }
-        if(!(header_value =(char *)malloc(sizeof(char)*MAX_HEADER_VALUE))){
+        if(!(header_value = (char *)malloc(sizeof(char)*MAX_HEADER_VALUE))){
             header_list_destroy(head);
+            free(header_name);
             return 0x0;
         }
         sscanf(header_line, "%[^:]%*[:] %s", header_name, header_value);
         cur->header_name = header_name;
+        for ( ; *header_name; header_name++) *header_name = tolower(*header_name);
         cur->header_value = header_value;
         prev = cur;
         free(header_line);
@@ -50,7 +52,12 @@ void header_list_destroy(HeaderList *head){
 
 char *header_list_get_header(HeaderList *head, char *header){
     HeaderList *cur;
-    for(cur=head; cur && strcmp(cur->header_name, header); cur=cur->next_header);
+    char *header_lower, *p;
+    
+    header_lower = malloc(strlen(header));
+    strcpy(header_lower, header);
+    for (p=header_lower; *p; p++) *p = tolower(*p);
+    for(cur=head; cur && strcmp(cur->header_name, header_lower); cur=cur->next_header);
     if(!cur)
         return 0x0;
     return cur->header_value;
