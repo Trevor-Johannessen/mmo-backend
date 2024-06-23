@@ -44,7 +44,7 @@ Packet *packet_handle_login(Packet *packet, Session *session){
         packet_errno = INVALID_AWAITING_CONNECTION;
         return 0x0;
     }
-    return packet_template_success();    
+    return packet_template_success(packet->id);    
 }
 
 Packet *packet_handle_logout(Packet *packet, Session *session){
@@ -59,7 +59,7 @@ Packet *packet_handle_move(Packet *packet, Session *session){
     x = ntohl(x);
     y = ntohl(y);
     if(!player_move(session->player, x, y))
-        return packet_template_failure();
-    return packet_template_success();
+        return packet_template_failure(packet->id);
+    return packet_template_success(packet->id);
 }
 

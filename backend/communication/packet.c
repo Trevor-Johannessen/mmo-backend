@@ -45,10 +45,11 @@ void packet_write(int fd, Packet *packet){
     ws_free_frame(frame);
 }
 
-Packet *packet_create(unsigned char opcode, void *data, long len){
+Packet *packet_create(unsigned char opcode, int id, void *data, long len){
     Packet *packet;
     packet = malloc(sizeof(Packet));
     packet->opcode = opcode;
+    packet->id = id;
     packet->length = len;
     packet->data = data;
     return packet;

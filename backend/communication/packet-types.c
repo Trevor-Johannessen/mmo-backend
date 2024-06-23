@@ -4,50 +4,30 @@ Packet *packet_template(unsigned char opcode){
     
 }
 
-// INCOMING PACKETS
-
-// Confirms a login has been successful
-Packet *packet_template_login(){
-    return packet_create(LOGIN_PACKET, 0, 0);
-}
-
-// Confirms a logout has been successful
-Packet *packet_template_logout(){
-    return packet_create(LOGOUT_PACKET, 0, 0);
-}
-
-// Moves a player to a given coordiante
-Packet *packet_template_move(){
-    void *body;
-    int size = sizeof(int)*2;
-    if(!(body = malloc(size)))
-        return 0;
-    packet_create(MOVE_PACKET, body, size);
-}
-
 // OUTGOING PACKETS
 
-Packet *packet_template_success(){
-    return packet_create(SUCCESS_PACKET, 0, 0);
+Packet *packet_template_success(int code){
+    return packet_create(SUCCESS_PACKET, code, 0, 0);
 }
 
-Packet *packet_template_failure(){
-    return packet_create(FAILURE_PACKET, 0, 0);
+Packet *packet_template_failure(int code){
+    return packet_create(FAILURE_PACKET, code, 0, 0);
 }
 
-Packet *packet_template_bad_state(){
-    return packet_create(BAD_STATE, 0, 0);
+Packet *packet_template_bad_state(int code){
+    return packet_create(BAD_STATE, code, 0, 0);
 }
 
 Packet *packet_template_error(int code){
     char *msg;
     if(code > (error_length-1))
         code = 0;
-    msg = error_strings[code];
-    return packet_create(ERROR, msg, strlen(msg));
+    msg = malloc(strlen(error_strings[code]));
+    strcpy(msg, error_strings[code]);
+    return packet_create(ERROR, code, msg, strlen(msg));
 }
 
-Packet *packet_template_update_position(char *id, int x, int y){
+Packet *packet_template_update_position(int code, char *id, int x, int y){
     int size;
     char *body;
 
@@ -61,5 +41,5 @@ Packet *packet_template_update_position(char *id, int x, int y){
     ((int *)body)[1] = y;
     strcpy(body+sizeof(int)*2, id);
 
-    return packet_create(MOVED_PACKET, body, size);
+    return packet_create(MOVED_PACKET, code, body, size);
 }

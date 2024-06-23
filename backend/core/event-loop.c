@@ -42,7 +42,7 @@ void event_loop_start(int fd){
 
         // check if packet is valid for session state
         if(!session_verify_packet(session, packet)){
-            response = packet_template_bad_state();
+            response = packet_template_bad_state(packet->id);
             packet_write(session->fd, response);
             goto cleanup;
         }

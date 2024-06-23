@@ -16,17 +16,13 @@
 #define MOVED_PACKET 6
 #define BAD_STATE 7
 
-// INCOMING PACKETS
 Packet *packet_template(unsigned char opcode);
-Packet *packet_template_login();
-Packet *packet_template_logout();
-Packet *packet_template_move();
 
 // OUTGOING PACKETS
 Packet *packet_template_error(int code);
-Packet *packet_template_success();
-Packet *packet_template_failure();
-Packet *packet_template_bad_state();
-Packet *packet_template_update_position(char *id, int x, int y);
+Packet *packet_template_success(int code);
+Packet *packet_template_failure(int code);
+Packet *packet_template_bad_state(int code);
+Packet *packet_template_update_position(int code, char *id, int x, int y);
 
 #endif
