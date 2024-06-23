@@ -28,9 +28,11 @@ Packet *packet_read(int fd){
 void *packet_flatten(Packet *packet){
     void *data;
     int header_len;
-    header_len = sizeof(Packet)-sizeof(void *);
+    header_len = sizeof(packet->id) + sizeof(packet->opcode) + sizeof(packet->length);
     data = malloc(packet->length+header_len);
-    memcpy(data, packet, header_len);
+    *((char *)data) = packet->opcode;
+    *((int *)(data+1)) = packet->id;
+    *((int *)(data+5)) = packet->length;
     memcpy(data+header_len, packet->data, packet->length);
     return data;
 }
