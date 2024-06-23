@@ -20,9 +20,10 @@ void event_loop_start(int fd){
     struct pollfd poll_args;
     
     // Set up structs needed for a connection
-    player = player_create();
-    session = session_create(player, fd);
-    player->session = session;
+    //player = player_create();
+    if(!(session = session_create(fd)))
+        return;
+    //player->session = session;
 
     // set up polling
     poll_args.fd = fd;

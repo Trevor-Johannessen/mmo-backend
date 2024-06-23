@@ -21,13 +21,13 @@ Test(db, test_db_get_player) {
     conn = db_connect();
 
     // Find player that exists.
-    player = db_player_get_player(conn, "aaaaaa");
-    cr_assert(player, "Player with id 'aaaaaa' not returned.");
+    player = db_player_get_player(conn, "test");
+    cr_assert(player, "Player with id 'test' not returned.");
     player_print(player);
 
     // Find player that does not exist.
-    player = db_player_get_player(conn, "aaaaab");
-    cr_assert(!player, "Invalid player with id 'aaaaab' returned.");
+    player = db_player_get_player(conn, "testb");
+    cr_assert(!player, "Invalid player with id 'testb' returned.");
 
     db_free(conn);
     mongoc_cleanup();

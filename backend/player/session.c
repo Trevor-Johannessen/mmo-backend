@@ -2,12 +2,16 @@
 
 StateArray **session_valid_packets;
 
-Session *session_create(Player *player, int fd){
+Session *session_create(int fd){
     Session *session;
     
     session = malloc(sizeof(session));
     memset(session, 0, sizeof(session));
-    session->player = player;
+    session->player = 0x0;
+    if(!(session->conn = db_connect())){
+        session_destroy(session);
+        return 0x0;
+    }
     session->state = DISABLED;
     session->fd = fd;
     return session;

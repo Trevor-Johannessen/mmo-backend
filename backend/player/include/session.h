@@ -8,17 +8,18 @@
 #define SESSION_H
 
 #include "player.h"
-
+#include "../../db/include/db.h"
 typedef struct session {
 	int fd;
 	State state;
+	MongoConnection *conn;
 	struct player *player;
 } Session;
 
 // List of variably sized arrays
 extern StateArray **session_valid_packets;
 
-Session *session_create(struct player *player, int fd);
+Session *session_create(int fd);
 void session_destroy(Session *session);
 int session_verify_packet(Session *session, Packet *packet);
 void session_populate_list();

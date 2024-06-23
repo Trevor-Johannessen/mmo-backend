@@ -33,13 +33,15 @@ Packet *packet_handle_login(Packet *packet, Session *session){
 
     // get info from database (primary key is code)
     // move this into a Player *db_get_player() function
-    session->player->name = db_get_name(id);
-    session->player->max_move = 1;
+    session->player = db_player_get_player(session->conn, id);
+    session->player->session = session;
+    // session->player->name = db_get_name(id);
+    // session->player->max_move = 1;
     session->state = ROAMING;
     map_id = 0;
 
     // spawn player into world
-    if(map_spawn_player_random(map_id, session->player) == -1){
+    if(map_spawn_player(map_id, session->player, session->player->x, session->player->y) == -1){
         session_destroy(session);
         packet_errno = INVALID_AWAITING_CONNECTION;
         return 0x0;
@@ -60,6 +62,7 @@ Packet *packet_handle_move(Packet *packet, Session *session){
     y = ntohl(y);
     if(!player_move(session->player, x, y))
         return packet_template_failure(packet->id);
-    return packet_template_success(packet->id);
+    //return packet_template_success(packet->id);
+    return 0x0;
 }
 

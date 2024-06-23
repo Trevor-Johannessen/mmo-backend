@@ -60,6 +60,7 @@ async def authenticate(jwt: str):
 
 @app.post("/unsafe/authenticate")
 async def authenticate(account_id=None):
+    print("Account id = ", account_id)
     if not account_id:
         account_id = str(random.randrange(0,2000000000))
     token=None

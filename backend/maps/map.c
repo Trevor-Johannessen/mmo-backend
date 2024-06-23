@@ -97,10 +97,11 @@ int map_spawn_player(int id, Player *player, int x, int y){
     player->y = y;
     
     // set coordinate to be invalid
-    if(!map_disable_coord(map, player->x, player->y)){
-        map_unload(id);
-        return 0;
-    }
+    player_move(player, x, y);
+    // if(!map_disable_coord(map, player->x, player->y)){
+    //     map_unload(id);
+    //     return 0;
+    // }
     
     return 1;
 }

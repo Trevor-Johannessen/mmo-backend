@@ -24,12 +24,12 @@ int player_move(Player *player, int x, int y){
     if(!movement_check_valid(player->max_move, player->x, player->y, x, y))
         return 0;
 
-    // disable space
-    if(!map_disable_coord(player->map, x, y))
-        return 0;
-
     // enable old coord
     if(!map_enable_coord(player->map, player->x, player->y))
+        return 0;
+
+    // disable space
+    if(!map_disable_coord(player->map, x, y))
         return 0;
 
     // set player to new coords
@@ -38,7 +38,7 @@ int player_move(Player *player, int x, int y){
 
     // update other players on new position
     packet = packet_template_update_position(0, player->id, x, y);
-    map_send_packet(player->map, packet, player);
+    map_send_packet(player->map, packet, 0x0);
 
     return 1;
 }
