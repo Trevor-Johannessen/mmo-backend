@@ -15,6 +15,7 @@
 	6. Add its macro to any session states it should be valid in in sessions.c
 */
 
+#define PACKET_SIZE 1+4+4
 
 typedef struct {
 	unsigned char opcode;
