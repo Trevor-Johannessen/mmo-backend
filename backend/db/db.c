@@ -10,9 +10,9 @@ char *db_get_name(char *id){
 }
 
 char *bson_get_string(bson_iter_t *iter){
-    void *out;
+    char *out;
     const char *hold = bson_iter_utf8(iter, NULL);
-    const int size = strlen(hold);
+    const int size = strlen(hold)+1;
     out = malloc(size);
     memcpy(out, hold, size);
     return out;
