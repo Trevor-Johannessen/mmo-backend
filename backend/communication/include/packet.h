@@ -19,13 +19,13 @@
 typedef struct {
 	unsigned char opcode;
 	unsigned int id;
-	unsigned long length;
+	unsigned int length;
 	char *data;	
 } Packet;
 
 Packet *packet_read(int fd); // returns 0x0 if bad packet (invalid opcode)
 void packet_write(int fd, Packet *pkt);
-Packet *packet_create(unsigned char opcode, int id, void *data, long len);
+Packet *packet_create(unsigned char opcode, int id, void *data, int len);
 void packet_free(Packet *packet);
 void *packet_flatten(Packet *packet);
 

@@ -3,7 +3,6 @@
 Packet *packet_read(int fd){
     WS_Frame *frame;
     Packet *packet;
-    unsigned long frame_len;
     int offset;
     
     // create new packet
@@ -17,7 +16,7 @@ Packet *packet_read(int fd){
     memcpy(packet->data, frame->data+sizeof(packet->opcode)+sizeof(packet->length), packet->length);
 
     // debug
-    fprintf(stdout, "opcode: %d\nlength: %ld\n", packet->opcode, packet->length);
+    fprintf(stdout, "opcode: %d\nlength: %d\n", packet->opcode, packet->length);
 
     // free frame but save the body
     frame->data=0x0;
@@ -45,7 +44,7 @@ void packet_write(int fd, Packet *packet){
     ws_free_frame(frame);
 }
 
-Packet *packet_create(unsigned char opcode, int id, void *data, long len){
+Packet *packet_create(unsigned char opcode, int id, void *data, int len){
     Packet *packet;
     packet = malloc(sizeof(Packet));
     packet->opcode = opcode;
