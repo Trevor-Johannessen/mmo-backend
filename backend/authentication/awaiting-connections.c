@@ -75,7 +75,7 @@ int awaiting_connections_table_remove(char* token, int remove_token){
 char *awaiting_connections_table_find(char *key){
     AwaitingConnection* conn;
     if(!(conn = (AwaitingConnection *)g_hash_table_lookup(awaiting_connections_table, (gconstpointer)key))){
-        fprintf(stderr, "Could not find connection with key '%s'.", key);
+        fprintf(stderr, "Could not find connection with key '%s'.\n", key);
         return 0x0;
     }
     return conn->id;
