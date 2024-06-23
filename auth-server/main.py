@@ -59,8 +59,9 @@ async def authenticate(jwt: str):
 
 
 @app.post("/unsafe/authenticate")
-async def authenticate():
-    account_id = str(random.randrange(0,2000000000))
+async def authenticate(account_id=None):
+    if not account_id:
+        account_id = str(random.randrange(0,2000000000))
     token=None
     while True: # Loop incase token is already taken (statistically improbable)
         # Generate token
