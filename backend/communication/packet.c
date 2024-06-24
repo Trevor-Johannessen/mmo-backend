@@ -42,7 +42,6 @@ void packet_write(int fd, Packet *packet){
     void *body;
     body = packet_flatten(packet);
     frame = ws_bin_frame(body, PACKET_SIZE+packet->length);
-    packet_free(packet);
     ws_write_frame(fd, frame);
     ws_free_frame(frame);
 }

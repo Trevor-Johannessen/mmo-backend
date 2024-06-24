@@ -58,8 +58,7 @@ Packet *packet_handle_move(Packet *packet, Session *session){
 
     x = *((int *)(packet->data));
     y = *((int *)(packet->data+4));
-    x = ntohl(x);
-    y = ntohl(y);
+    fprintf(stdout, "Moving to %d, %d\n", x, y);
     if(!player_move(session->player, x, y))
         return packet_template_failure(packet->id);
     //return packet_template_success(packet->id);
