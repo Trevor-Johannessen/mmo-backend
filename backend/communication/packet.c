@@ -16,9 +16,6 @@ Packet *packet_read(int fd){
     packet->data = malloc(sizeof(char) * packet->length);
     memcpy(packet->data, frame->data+sizeof(packet->opcode)+sizeof(packet->id)+sizeof(packet->length), packet->length);
 
-    // debug
-    fprintf(stdout, "opcode: %d\nlength: %d\n", packet->opcode, packet->length);
-
     // free frame but save the body
     frame->data=0x0;
     ws_free_frame(frame);
