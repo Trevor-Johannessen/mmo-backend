@@ -33,7 +33,9 @@ Packet *packet_handle_login(Packet *packet, Session *session){
 
     // get info from database (primary key is code)
     // move this into a Player *db_get_player() function
-    session->player = db_player_get_player(session->conn, id);
+    if(!(session->player = db_player_get_player(session->conn, id))){
+        return packet_template_failure(packet->id);
+    }
     session->player->session = session;
     // session->player->name = db_get_name(id);
     // session->player->max_move = 1;
@@ -58,7 +60,6 @@ Packet *packet_handle_move(Packet *packet, Session *session){
 
     x = *((int *)(packet->data));
     y = *((int *)(packet->data+4));
-    fprintf(stdout, "Moving to %d, %d\n", x, y);
     if(!player_move(session->player, x, y))
         return packet_template_failure(packet->id);
     //return packet_template_success(packet->id);

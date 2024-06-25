@@ -34,8 +34,6 @@ void event_loop_start(int fd){
         packet = 0x0;
         response = 0x0;
 
-        fprintf(stdout, "State = %d\n", session->state);
-
         while(poll(&poll_args, 1, -1) <= 0);
         if(!(packet = packet_read(session->fd))){
             event_loop_error(session->fd, BAD_PACKET);

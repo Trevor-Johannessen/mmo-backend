@@ -26,6 +26,7 @@ Communication is done by sending packets through the connected websocket.
 
 ## BUGS
 1. Headerlist crashes if a header is given that exceeds the buffer size of the buffered reader.
-2. db_get_player crashes if an id match is not found
+2. Mutliple people can log into the same player at once
 3. Invalid packets over websocket lead to segfault
 4. Removing awaiting enteries results in segfault occassionally
+5. Players can sometimes walk through other players (but not vice-versa)
