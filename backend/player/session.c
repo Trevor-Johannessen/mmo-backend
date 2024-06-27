@@ -52,15 +52,15 @@ void session_populate_list(){
 
 
     // DISABLED
-    StateArray disabled = {LOGIN_PACKET};
-    session_valid_packets[0] = malloc(sizeof(int) + sizeof(State)*(sizeof(disabled) / sizeof(StateArray)));
-    session_valid_packets[0]->size = sizeof(disabled) / sizeof(StateArray);
+    State disabled[] = {LOGIN_PACKET};
+    session_valid_packets[0] = malloc(sizeof(int) + sizeof(disabled));
+    session_valid_packets[0]->size = sizeof(disabled) / sizeof(State);
     memcpy(session_valid_packets[0]->valid_packet_types, &disabled, sizeof(disabled));
 
 	// ROAMING
-    StateArray roaming = {MOVE_PACKET};
-    session_valid_packets[1] = malloc(sizeof(int) + sizeof(State)*(sizeof(roaming) / sizeof(StateArray)));
-    session_valid_packets[1]->size = sizeof(roaming) / sizeof(StateArray);
+    State roaming[] = {MOVE_PACKET, INSPECT_PLAYER_PACKET};
+    session_valid_packets[1] = malloc(sizeof(int) + (sizeof(roaming)));
+    session_valid_packets[1]->size = sizeof(roaming) / sizeof(State);
     memcpy(session_valid_packets[1]->valid_packet_types, &roaming, sizeof(roaming));
 	
     // FOOTER
