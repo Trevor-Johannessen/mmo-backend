@@ -28,9 +28,6 @@ Packet *packet_handle_login(Packet *packet, Session *session){
         return 0x0;
     } 
 
-    // remove entry from awaiting_connections table
-    awaiting_connections_table_remove(code, 0);
-
     // get info from database (primary key is code)
     // move this into a Player *db_get_player() function
     if(!(session->player = db_player_get_player(session->conn, id))){
@@ -41,6 +38,9 @@ Packet *packet_handle_login(Packet *packet, Session *session){
     // session->player->max_move = 1;
     session->state = ROAMING;
     map_id = 0;
+
+    // remove entry from awaiting_connections table
+    awaiting_connections_table_remove(code, 0);
 
     // spawn player into world
     if(map_spawn_player(map_id, session->player, session->player->x, session->player->y) == -1){

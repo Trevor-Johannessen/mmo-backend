@@ -60,13 +60,13 @@ int awaiting_connections_table_remove(char* token, int remove_token){
     AwaitingConnection *conn;
     int success;
 
-    success=0;
+    success=1;
     pthread_mutex_lock(&write_lock);
-    if(success && !g_hash_table_remove(awaiting_connections_table, (gconstpointer)token)){
+    if(!g_hash_table_remove(awaiting_connections_table, (gconstpointer)token)){
         fprintf(stderr, "Could not remove %s from hashtable.\n", token);
         success=0;
     }
-    if(remove_token)
+    if(success && remove_token)
         free(token);
     pthread_mutex_unlock(&write_lock);
     return success;
@@ -89,7 +89,7 @@ void awaiting_connection_destroy(gpointer conn){
     free(((AwaitingConnection *)conn)->id);
 }
 
-void print(gpointer key, gpointer value, gpointer user_data){
+void awaiting_connections_print_connection(gpointer key, gpointer value, gpointer user_data){
     int *counter = (int *)user_data;
     (*counter)++;
     fprintf(stdout, "%d. %s -> %s\n\n", *counter, (char*)key, ((AwaitingConnection *)value)->id);
@@ -98,7 +98,7 @@ void print(gpointer key, gpointer value, gpointer user_data){
 void awaiting_connections_table_print_all(){
     int counter = 0;
     fprintf(stdout, "Awaiting Connections Content\n");
-    g_hash_table_foreach(awaiting_connections_table, print, (gpointer*)&counter);
+    g_hash_table_foreach(awaiting_connections_table, awaiting_connections_print_connection, (gpointer*)&counter);
 }
 
 void awaiting_connections_table_check_if_expired(gpointer key, gpointer value, gpointer now){
