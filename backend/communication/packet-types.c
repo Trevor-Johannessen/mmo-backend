@@ -43,3 +43,17 @@ Packet *packet_template_update_position(int code, char *id, int x, int y){
 
     return packet_create(MOVED_PACKET, code, body, size);
 }
+
+Packet *packet_template_player(int code, char *name, int x, int y){
+    char *body;
+    int size, static_size;
+
+    static_size = sizeof(x) + sizeof(y);
+    size = static_size + strlen(name)+1;
+    body = malloc(size);
+    ((int *)(body))[0] = x;
+    ((int *)(body))[1] = y;
+    strncpy(body+static_size, name, strlen(name)+1);
+
+    return packet_create(INSPECT_PLAYER_PACKET, code, body, size);
+}

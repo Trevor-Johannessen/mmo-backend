@@ -10,6 +10,8 @@ Packet *packet_handle_route(Packet *packet, Session *session){
             return packet_handle_logout(packet, session);
         case MOVE_PACKET:
             return packet_handle_move(packet, session);
+        case INSPECT_PLAYER_PACKET:
+            return packet_handle_inspect_player(packet, session);
         default:
             return 0;
     }
@@ -66,3 +68,18 @@ Packet *packet_handle_move(Packet *packet, Session *session){
     return 0x0;
 }
 
+Packet *packet_handle_inspect_player(Packet *packet, Session *session){
+    char *id;
+    Player *player;
+    Packet *out;
+
+    id = malloc(packet->length+1);
+    strncpy(id, packet->data, packet->length);
+    id[packet->length] = '\0';
+    if(!(player = db_player_get_player(session->conn, id)))
+        out = packet_template_failure(packet->id);
+    else
+        out = packet_template_player(packet->id, player->name, player->x, player->y);
+    free(id);
+    return out;
+}
