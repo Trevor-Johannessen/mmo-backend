@@ -54,6 +54,8 @@ Packet *packet_create(unsigned char opcode, int id, void *data, int len){
 }
 
 void packet_free(Packet *packet){
+    if(!packet)
+        return;
     if(packet->data)
         free(packet->data);
     free(packet);

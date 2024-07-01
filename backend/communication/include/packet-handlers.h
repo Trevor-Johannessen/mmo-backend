@@ -15,5 +15,6 @@ Packet *packet_handle_logout(Packet *logout_packet, Session *session);
 Packet *packet_handle_success(Packet *success_packet, Session *session);
 Packet *packet_handle_failure(Packet *failure_packet, Session *session);
 Packet *packet_handle_move(Packet *move_packet, Session *session);
+Packet *packet_handle_inspect_player(Packet *packet, Session *session);
 
 #endif
