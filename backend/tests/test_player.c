@@ -3,16 +3,28 @@
 #include <stdio.h>
 #include <stdatomic.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../player/include/movement.h"
 #include "../player/include/player.h"
 #include "../maps/include/map.h"
+#include "../db/include/db.h"
+#include "../db/include/db-player.h"
 
+MongoConnection *GLOBAL_CONNECTION;
 
 void *move_player_thread(void *player){
     player_move((Player *)player, 5, 4);
 }
 
-Test(player, test_player_create) {
+void test_player_init_global(){
+    GLOBAL_CONNECTION = db_connect();
+}
+
+void test_player_destroy_global(){
+    db_free(GLOBAL_CONNECTION);
+}
+
+Test(player, test_player_create, .init = test_player_init_global, .fini = test_player_destroy_global) {
     Player *player;
     // test uninitalized player
     player = player_create();
@@ -28,7 +40,7 @@ Test(player, test_player_create) {
     player_free(player);
 }
 
-Test(player, test_player_move) {
+Test(player, test_player_move, .init = test_player_init_global, .fini = test_player_destroy_global) {
     Player *sam, *cid;
     int i;
     void *trash;
@@ -85,3 +97,93 @@ Test(player, test_player_move) {
     player_free(sam);
     player_free(cid);
 }
+
+Test(player, test_player_db, .init = test_player_init_global, .fini = test_player_destroy_global) {
+    Player *p1;
+
+    // Pull player from db
+    p1 = db_player_get_player(GLOBAL_CONNECTION, "unit_test");
+    cr_assert(p1, "P1 returned null.");
+
+    // check that it has valid properties
+    cr_assert_not(strcmp(p1->name, "unit_tester"), "Player name is incorrect. (Expected \"unit_tester\", Got %s)", p1->name);
+    cr_assert_eq(p1->x, 5, "Player X position is incorrect. (Expected 5, Got %d)", p1->x);
+    cr_assert_eq(p1->y, 8, "Player Y position is incorrect. (Expected 8, Got %d)", p1->y);
+    cr_assert_eq(p1->max_move, 1, "Player max move is incorrect. (Expected 1, Got %d)", p1->max_move);
+
+    // change properties
+    p1->x = 1;
+    p1->y = 1;
+    p1->max_move = 2;
+    player_change_name(p1, "tommy");
+    p1->modified = 1;
+    // TODO: ADD MAP CHANGE HERE
+
+    // free player
+    player_free(p1);
+    p1=0x0;
+
+    // pull same player from db
+    p1 = db_player_get_player(GLOBAL_CONNECTION, "unit_test");
+    cr_assert(p1, "P1 returned null.");
+
+    // check that it has changed properties
+    cr_assert_not(strcmp(p1->name, "tommy"), "Player name is incorrect. (Expected \"tommy\", Got %s)", p1->name);
+    cr_assert_eq(p1->x, 1, "Player X position is incorrect. (Expected 1, Got %d)", p1->x);
+    cr_assert_eq(p1->y, 1, "Player Y position is incorrect. (Expected 1, Got %d)", p1->y);
+    cr_assert_eq(p1->max_move, 2, "Player max move is incorrect. (Expected 2, Got %d)", p1->max_move);
+
+    // revert properties
+    p1->x = 5;
+    p1->y = 8;
+    p1->max_move = 1;
+    player_change_name(p1, "unit_tester");
+    p1->modified = 1;
+
+    // free player
+    player_free(p1);
+}
+
+Test(player, test_player_cache, .init = player_cache_init, .fini = player_cache_destroy) {
+    // Create new player
+    Player *p1, *p2, *p3;
+    p3 = player_create();
+    p3->x=5;
+    p3->x=7;
+    p3->refs=1;
+    p3->id = malloc(5);
+    strcpy(p3->id, "test");
+
+    // Insert player into cache
+    cr_assert(player_cache_insert(p3->id, p3), "Could not insert p3 into player cache.");
+
+    // Pull same player from cache
+    p1 = player_cache_find("test");
+    p2 = player_cache_find("test");
+
+    // check if addresses are equal
+    cr_assert_eq(p3, p1, "Memory addresses retrieved from cache are different. (p3!=p1)");
+    cr_assert_eq(p1, p2, "Memory addresses retrieved from cache are different. (p1!=p2)");
+
+    // check ref == 2
+    cr_assert_eq(p3->refs, 3, "Invalid ref count. (Expected 3, Got %d)", p3->refs);
+
+    // Free players
+    player_free(p1);
+    player_free(p2);
+    player_free(p3);
+
+    // Check that player is no longer in cache
+    p1=0x0;
+    p1 = player_cache_find("test");
+    cr_assert(!p1, "Found player in cache when that player should have been freed.");
+}
+
+// Test(player, test_player_concurrent) {
+//     // ref player a ton of times
+
+//     // unref player a ton of times
+
+//     // concurrently increment or decrement property
+
+// }

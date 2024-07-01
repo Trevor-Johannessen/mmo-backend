@@ -4,7 +4,7 @@ GHashTable *awaiting_connections_table = 0x0;
 pthread_mutex_t write_lock;
 const time_t time_to_live = 5*60;
 
-void awaiting_connections_table_initalize(){
+void awaiting_connections_table_init(){
     pthread_t auth_reciever_tid;
 
     if(pthread_mutex_init(&write_lock, 0x0)){

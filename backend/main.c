@@ -5,6 +5,7 @@
 #include "db/include/db.h"
 #include "structures/include/linked-list.h"
 #include "player/include/session.h"
+#include "player/include/player.h"
 #include "maps/include/map.h"
 
 void *start_auth_reciever(void* port);
@@ -13,6 +14,7 @@ void *web_server_start(void* port);
 char *AUTH_PORT = "12000";
 char *WEB_PORT = "12001";
 const int SPIN_SEPERATE_AUTH = 0;
+MongoConnection *GLOBAL_CONNECTION;
 
 int main(int argc, char* argv[]){
     // preparation
@@ -20,6 +22,8 @@ int main(int argc, char* argv[]){
     map_lock_init();
     session_populate_list();
     mongoc_init();
+    player_cache_init();
+    GLOBAL_CONNECTION = db_connect();
 
     // Spin up auth-reciever thread
     pthread_t auth_reciever_tid;
@@ -41,5 +45,6 @@ int main(int argc, char* argv[]){
 
 // TODO: call this on SIGINT
 int cleanup(){
+    db_free(GLOBAL_CONNECTION);
     mongoc_cleanup();
 }

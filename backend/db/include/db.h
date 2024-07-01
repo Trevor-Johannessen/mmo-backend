@@ -9,6 +9,7 @@ typedef struct mongo_connection {
     mongoc_client_t *client;
     mongoc_server_api_t *api;
     mongoc_database_t *database;
+    mongoc_collection_t *playerdata;
 } MongoConnection;
 
 MongoConnection *db_connect();

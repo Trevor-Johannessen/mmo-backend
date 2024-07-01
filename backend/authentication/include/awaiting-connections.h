@@ -20,7 +20,7 @@ typedef struct awaiting_connection {
 } AwaitingConnection;
 
 void awaiting_connection_destroy();
-void awaiting_connections_table_initalize();
+void awaiting_connections_table_init();
 int awaiting_connections_table_insert(char* token, char* id);
 int awaiting_connections_table_remove(char* token, int remove_token);
 int awaiting_connections_table_destroy();

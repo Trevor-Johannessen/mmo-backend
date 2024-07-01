@@ -54,6 +54,12 @@ MongoConnection *db_connect(){
         goto mongo_connection_create_cleanup;
     bson_destroy(&reply);
 
+    // add collection
+    if(!(conn->playerdata = mongoc_database_get_collection(conn->database, "Playerdata"))){
+        fprintf(stderr, "Could not connect to Playerdata collection.\n");
+        goto mongo_connection_create_cleanup;
+    }
+
     // cleanup
     if(0){
         mongo_connection_create_cleanup:
@@ -71,5 +77,6 @@ void db_free(MongoConnection *conn){
     mongoc_database_destroy(conn->database);
     mongoc_server_api_destroy(conn->api);
     mongoc_client_destroy(conn->client);
+    mongoc_collection_destroy(conn->playerdata);
     free(conn);
 }

@@ -42,7 +42,7 @@ void *start_auth_reciever(void* port){
     // Initalize variables
     id_size = 21;
     #if ENABLE_DICT == 1
-        awaiting_connections_table_initalize();
+        awaiting_connections_table_init();
     #endif
     // Open socket
     listen_fd = open_listenfd((char *)port);

@@ -1,5 +1,42 @@
 #include "include/player.h"
 
+GHashTable *player_cache = 0x0;
+
+void player_cache_init(){
+    if(!(player_cache = g_hash_table_new_full(g_str_hash, g_str_equal, 0x0, player_cache_destroy_cache))){
+        fprintf(stderr, "Could not initalize player cache.\n");
+        exit(1);
+    }
+}
+
+void player_cache_destroy(){
+    g_hash_table_destroy(player_cache);
+}
+
+int player_cache_insert(char *id, Player *player){
+    int success = 1;
+
+    if(!g_hash_table_insert(player_cache, (gpointer)id, (gpointer)player)){
+        fprintf(stderr, "Could not insert player: %s.\n", id);
+        success = 0;
+    }
+
+    return success;
+}
+
+Player *player_cache_find(char *id){
+    Player *player;
+
+    if(!(player = (Player *)g_hash_table_lookup(player_cache, (gconstpointer)id)))
+        return 0x0;
+    atomic_fetch_add(&(player->refs), 1);
+    return player;
+}
+
+void player_cache_destroy_cache(gpointer p){
+    player_free((Player *)p);
+}
+
 Player *player_create(){
     Player *player;
     player=malloc(sizeof(*player));
@@ -10,6 +47,15 @@ Player *player_create(){
 void player_free(Player *player){
     if(!player)
         return;
+    atomic_fetch_add(&(player->refs), -1);
+    if(player->refs > 0)
+        return;
+
+    // Write player to DB
+    if(player->modified)
+        db_player_write_player(GLOBAL_CONNECTION, player);
+    
+    // Free player
     if(player->name)
         free(player->name);
     if(player->id)
@@ -44,6 +90,14 @@ int player_move(Player *player, int x, int y){
     packet_free(packet);
     
     return 1;
+}
+
+void player_change_name(Player *player, char *name){
+    char *new_name;
+    new_name = malloc(sizeof(char) * strlen(name)+1);
+    strcpy(new_name, name);
+    free(player->name);
+    player->name = new_name;
 }
 
 void player_print(Player *player){
