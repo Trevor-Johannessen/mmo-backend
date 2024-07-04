@@ -21,14 +21,14 @@
 #define DEBUG_DICT 1
 
 const int TOKEN_SIZE = 255;
+const int ID_SIZE = 21;
 const int REPS = 5;
 
 int open_listenfd(char* port);
-int readSocket(int fd, char* token);
+int read_socket(int fd, char* token, int read_size);
 
 void *start_auth_reciever(void* port){
     int listen_fd, conn_fd, current_flags;
-    int id_size;
     socklen_t client_len;
     struct sockaddr_storage client_addr;
     char *token, *id;
@@ -40,7 +40,6 @@ void *start_auth_reciever(void* port){
     }
         
     // Initalize variables
-    id_size = 21;
     #if ENABLE_DICT == 1
         awaiting_connections_table_init();
     #endif
@@ -61,21 +60,21 @@ void *start_auth_reciever(void* port){
     poll_args.revents = 0;
 
     while(1){
-        id = malloc(sizeof(char) * (id_size+1));
+        id = malloc(sizeof(char) * (ID_SIZE+1));
         token = malloc(sizeof(char) * (TOKEN_SIZE+1));
-        memset(id, 0, sizeof(char) * (id_size+1));
+        memset(id, 0, sizeof(char) * (ID_SIZE+1));
         memset(token, 0, sizeof(char) * (TOKEN_SIZE+1));
 
         // Get token
         while(poll(&poll_args, 1, -1) <= 0);
-        if(!readSocket(conn_fd, token)){
+        if(!read_socket(conn_fd, token, TOKEN_SIZE)){
             fprintf(stderr, "Could not read token\n");
             exit(1);
         }
 
         // Get google ID
         while(poll(&poll_args, 1, -1) <= 0);
-        if(!readSocket(conn_fd, id)){
+        if(!read_socket(conn_fd, id, ID_SIZE)){
             exit(1);
         }
 
@@ -129,10 +128,10 @@ int open_listenfd(char* port){
     return listen_fd;
 }
 
-int readSocket(int fd, char* token){
+int read_socket(int fd, char* token, int read_size){
     int total_read=0;
     int amount_read;
-    while((amount_read = read(fd, &token[total_read], TOKEN_SIZE-total_read)) > 0)
+    while((amount_read = read(fd, &token[total_read], read_size-total_read)) > 0)
         total_read+=amount_read;
     return total_read;
 }

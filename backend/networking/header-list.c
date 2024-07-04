@@ -54,7 +54,7 @@ char *header_list_get_header(HeaderList *head, char *header){
     HeaderList *cur;
     char *header_lower, *p;
     
-    header_lower = malloc(strlen(header));
+    header_lower = malloc(strlen(header)+1);
     strcpy(header_lower, header);
     for (p=header_lower; *p; p++) *p = tolower(*p);
     for(cur=head; cur && strcmp(cur->header_name, header_lower); cur=cur->next_header);

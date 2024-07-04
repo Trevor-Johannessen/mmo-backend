@@ -3,8 +3,8 @@
 Link *link_create(){
     Link *link;
 
-    link = malloc(sizeof(link));
-    memset(link, 0, sizeof(link));
+    link = malloc(sizeof(Link));
+    memset(link, 0, sizeof(Link));
     return link;
 }
 

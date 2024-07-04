@@ -16,14 +16,12 @@ void event_loop_error(int fd, int code){
 void event_loop_start(int fd){
     Packet *packet, *response;
     Session *session;
-    Player *player;
     struct pollfd poll_args;
     
     // Set up structs needed for a connection
     //player = player_create();
     if(!(session = session_create(fd)))
         return;
-    //player->session = session;
 
     // set up polling
     poll_args.fd = fd;

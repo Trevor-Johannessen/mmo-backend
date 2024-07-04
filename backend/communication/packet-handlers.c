@@ -31,7 +31,6 @@ Packet *packet_handle_login(Packet *packet, Session *session){
     } 
 
     // get info from database (primary key is code)
-    // move this into a Player *db_get_player() function
     if(!(session->player = db_player_get_player(session->conn, id))){
         return packet_template_failure(packet->id);
     }

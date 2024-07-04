@@ -5,8 +5,8 @@ StateArray **session_valid_packets;
 Session *session_create(int fd){
     Session *session;
     
-    session = malloc(sizeof(session));
-    memset(session, 0, sizeof(session));
+    session = malloc(sizeof(Session));
+    memset(session, 0, sizeof(Session));
     session->player = 0x0;
     if(!(session->conn = db_connect())){
         session_destroy(session);
@@ -45,27 +45,26 @@ void session_populate_list(){
     int state_count;
 
     length = FOOTER;
-    session_valid_packets = malloc(((int)length-1) * sizeof(StateArray *));
+    session_valid_packets = malloc(((int)length) * sizeof(StateArray *));
 
     /* !!! SUB ARRAYS MUST BE SORTED (by enum value) TO BINARY SEARCH FOR CORRECT PACKET !!! */
     /* This syntax is bad, please fix if possible */
 
-
     // DISABLED
     State disabled[] = {LOGIN_PACKET};
-    session_valid_packets[0] = malloc(sizeof(int) + sizeof(disabled));
-    session_valid_packets[0]->size = sizeof(disabled) / sizeof(State);
+    session_valid_packets[0] = malloc(sizeof(int) + 4 + sizeof(disabled));
+    session_valid_packets[0]->size = sizeof(disabled) / sizeof(disabled[0]);
     memcpy(session_valid_packets[0]->valid_packet_types, &disabled, sizeof(disabled));
 
 	// ROAMING
     State roaming[] = {MOVE_PACKET, INSPECT_PLAYER_PACKET};
-    session_valid_packets[1] = malloc(sizeof(int) + (sizeof(roaming)));
-    session_valid_packets[1]->size = sizeof(roaming) / sizeof(State);
+    session_valid_packets[1] = malloc(sizeof(int) + 4 + (sizeof(roaming)));
+    session_valid_packets[1]->size = sizeof(roaming) / sizeof(roaming[0]);
     memcpy(session_valid_packets[1]->valid_packet_types, &roaming, sizeof(roaming));
 	
     // FOOTER
-    session_valid_packets[length] = malloc(sizeof(int) + sizeof(State)*0);
-    session_valid_packets[length]->size = 0;
+    // session_valid_packets[length] = malloc(sizeof(int));
+    // session_valid_packets[length]->size = 0;
 
 }
 

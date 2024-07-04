@@ -10,10 +10,11 @@ Packet *packet_read(int fd){
 
     // recieve and parse binary frame
     frame = ws_read_frame(fd);
-    packet->length = ws_length(frame)-sizeof(packet->opcode);
+    packet->length = ws_length(frame)-sizeof(packet->opcode)-sizeof(packet->id)-sizeof(packet->length);
     packet->opcode = frame->data[0];
     packet->id = *((int *)(frame->data+1));
-    packet->data = malloc(sizeof(char) * packet->length);
+    packet->data = malloc(sizeof(char) * packet->length+1);
+    packet->data[packet->length] = '\0';
     memcpy(packet->data, frame->data+sizeof(packet->opcode)+sizeof(packet->id)+sizeof(packet->length), packet->length);
 
     // free frame but save the body

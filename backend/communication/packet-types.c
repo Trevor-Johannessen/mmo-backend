@@ -28,18 +28,19 @@ Packet *packet_template_error(int code){
 }
 
 Packet *packet_template_update_position(int code, char *id, int x, int y){
-    int size;
+    int size, length;
     char *body;
 
     if(!id)
         return 0x0;
 
-    size = sizeof(int)*2 + strlen(id);
+    length = strlen(id);
+    size = sizeof(int)*2 + length;
     body = malloc(size);
 
     ((int *)body)[0] = x;
     ((int *)body)[1] = y;
-    strcpy(body+sizeof(int)*2, id);
+    strncpy(body+sizeof(int)*2, id, length);
 
     return packet_create(MOVED_PACKET, code, body, size);
 }
