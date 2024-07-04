@@ -22,7 +22,7 @@ Communication is done by sending packets through the connected websocket.
 | 4 | FAILURE_PACKET |
 | 5 | MOVE_PACKET |
 | 6 | MOVED_PACKET |
-| 7 | BAD_STATE |
+| 7 | BAD_STATE_PACKET |
 
 ## BUGS
 1. Headerlist crashes if a header is given that exceeds the buffer size of the buffered reader.

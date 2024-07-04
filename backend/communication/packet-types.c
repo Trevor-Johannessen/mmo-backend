@@ -14,8 +14,8 @@ Packet *packet_template_failure(int code){
     return packet_create(FAILURE_PACKET, code, 0, 0);
 }
 
-Packet *packet_template_bad_state(int code){
-    return packet_create(BAD_STATE, code, 0, 0);
+Packet *packet_template_BAD_STATE_PACKET(int code){
+    return packet_create(BAD_STATE_PACKET, code, 0, 0);
 }
 
 Packet *packet_template_error(int code){

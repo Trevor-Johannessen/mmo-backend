@@ -14,8 +14,9 @@
 #define FAILURE_PACKET 4
 #define MOVE_PACKET 5
 #define MOVED_PACKET 6
-#define BAD_STATE 7
+#define BAD_STATE_PACKET 7
 #define INSPECT_PLAYER_PACKET 8
+#define MAP_PACKET 8
 
 Packet *packet_template(unsigned char opcode);
 
@@ -23,7 +24,7 @@ Packet *packet_template(unsigned char opcode);
 Packet *packet_template_error(int code);
 Packet *packet_template_success(int code);
 Packet *packet_template_failure(int code);
-Packet *packet_template_bad_state(int code);
+Packet *packet_template_BAD_STATE_PACKET(int code);
 Packet *packet_template_update_position(int code, char *id, int x, int y);
 Packet *packet_template_player(int code, char *name, int x, int y);
 
