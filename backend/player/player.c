@@ -74,20 +74,20 @@ int player_move(Player *player, int x, int y){
     if(!map_enable_coord(player->map, player->x, player->y))
         return 0;
 
-    // disable space
-    if(!map_disable_coord(player->map, x, y))
-        return 0;
-
     // set player to new coords
     player->x = x;
     player->y = y;
 
-    // update other players on new position
-    packet = packet_template_update_position(0, player->id, x, y);
-    map_send_packet(player->map, packet, 0x0);
-
     // trigger any events
     map_event_activate(x, y, player->map, player);
+
+    // disable space
+    if(!map_disable_coord(player->map, player->x, player->y))
+        return 0;
+
+    // update other players on new position
+    packet = packet_template_update_position(0, player->id, player->x, player->y);
+    map_send_packet(player->map, packet, 0x0);
 
     // cleanup
     packet_free(packet);
