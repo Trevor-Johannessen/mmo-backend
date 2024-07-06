@@ -11,7 +11,6 @@ Map *map_def_test_tile(){
     char *decor_string;
     unsigned char *collision_string;
     TileRow **collision;
-    TileEvent *events;
     Map *map;
 
     // define constants
@@ -30,7 +29,11 @@ Map *map_def_test_tile(){
     memset(map->decor, 0, width*height);
 
     // create events
+    map_add_event(map, map_event_create(5, 5, map_event_hello));
+    map_add_event(map, map_event_create(5, 5, map_event_goodbye));
+    map_add_event(map, map_event_create(10, 5, map_event_hello));
     
+
     // return finished map
     return map;
 }

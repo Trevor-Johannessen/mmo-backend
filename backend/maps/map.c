@@ -25,10 +25,6 @@ void map_send_packet(Map *map, Packet *packet, Player *exception){
     }
 }
 
-int map_event_activate(int x, int y, void *args){
-
-}
-
 int map_coord_is_walkable(Map *map, int x, int y){
     int segment;
     segment = map_get_segments(x);
@@ -95,13 +91,7 @@ int map_spawn_player(int id, Player *player, int x, int y){
     map->players = link_add_first(map->players, player);
     player->x = x;
     player->y = y;
-    
-    // set coordinate to be invalid
     player_move(player, x, y);
-    // if(!map_disable_coord(map, player->x, player->y)){
-    //     map_unload(id);
-    //     return 0;
-    // }
     
     return 1;
 }
@@ -174,14 +164,59 @@ Map *map_create(int id, int width, int height){
         map->collision[i] = map_row_create(width);
 
     // create decor
-    map->decor = malloc(sizeof(char) * height * width);
-    memset(map->decor, 0, sizeof(char) * height * width);
+    map->decor = malloc(sizeof(char)*height*width);
+    memset(map->decor, '-', sizeof(char)*height*width);
 
     return map;
 }
 
-void map_event_free(TileEvent *event){
-    
+void map_add_event(Map *map, MapEvent *event){
+    map->events = link_add_first(map->events, event);
+}
+
+MapEvent *map_event_create(int x, int y, void (*func)(MapEventArgs *)){
+    MapEvent *event;
+
+    event = malloc(sizeof(MapEvent));
+    event->x = x;
+    event->y = y;
+    event->func = func;
+
+    return event;
+}
+
+void map_event_free(MapEvent *event){
+   free(event); 
+}
+
+void map_event_activate(int x, int y, Map *map, Player *player){
+    MapEventArgs *args;
+    MapEvent *event;
+    Link *link;
+
+    args = map_event_args_create(map_load(map->id), player);
+    for(link=map->events;link;link=link_next(link)){
+        event = (MapEvent *)link->payload;
+        if(event->x == x && event->y == y)
+            event->func(args);
+    }
+    map_event_args_free(args);
+}
+
+MapEventArgs *map_event_args_create(Map *map, Player *player){
+    MapEventArgs *args;
+
+    args = malloc(sizeof(MapEventArgs));
+    args->player = player;
+    args->map = map;
+
+    return args;
+}
+
+void map_event_args_free(MapEventArgs *args){
+    if(args->map)
+        map_unload(args->map->id);
+    free(args);
 }
 
 void map_free(Map *map){
@@ -206,7 +241,7 @@ void map_free(Map *map){
     link = map->events;
     while(link){
         parent = link;
-        link = link=link_next(link);
+        link = link_next(link);
         map_event_free(parent->payload);
         free(parent);
     }

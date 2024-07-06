@@ -6,6 +6,7 @@
 #include "../../structures/include/linked-list.h"
 #include "../../player/include/player.h"
 #include "../../communication/include/packet.h"
+#include "map-events.h"
 
 struct player;
 
@@ -17,9 +18,8 @@ typedef struct map_row {
 typedef struct map_event {
     int x; // event position
     int y;
-    void *func; // function triggered on event activation
-    void *args;
-} TileEvent;
+    void (*func)(MapEventArgs *);
+} MapEvent;
 
 typedef struct map {
     int width;
@@ -42,7 +42,6 @@ extern Map *tiles[];
 extern Map *(*map_loaders[])();
 extern pthread_mutex_t map_locks[];
 
-int map_event_activate(int x, int y, void *args);
 int map_coord_is_walkable(Map *map, int x, int y);
 Map *map_load(int id);
 void map_unload(int id);
@@ -52,7 +51,12 @@ Map *map_create(int id, int width, int height);
 int map_get_segments(int width);
 int map_spawn_player(int id, struct player *player, int x, int y);
 long map_spawn_player_random(int id, struct player *player);
-void map_event_free(TileEvent *event);
+void map_add_event(Map *map, MapEvent *event);
+MapEvent *map_event_create(int x, int y, void (*func)(MapEventArgs *));
+void map_event_free(MapEvent *event);
+void map_event_activate(int x, int y, Map *map, struct player *player);
+MapEventArgs *map_event_args_create(Map *map, struct player *player);
+void map_event_args_free(MapEventArgs *args);
 void map_row_free(int height, TileRow **rows);
 void map_free(Map *map);
 long map_random_coord(Map *map);

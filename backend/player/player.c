@@ -86,6 +86,9 @@ int player_move(Player *player, int x, int y){
     packet = packet_template_update_position(0, player->id, x, y);
     map_send_packet(player->map, packet, 0x0);
 
+    // trigger any events
+    map_event_activate(x, y, player->map, player);
+
     // cleanup
     packet_free(packet);
     
