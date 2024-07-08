@@ -127,7 +127,7 @@ WS_Frame *ws_bin_frame(void *data, long len) {
     // decide how many bytes are needed for size
     if(len < 126)
         frame->length = len;
-    else if(len > 32767){
+    else if(len < 32767){
         frame->length = 126;
         frame->length_ext.short_len = len;
     } else {
@@ -161,7 +161,7 @@ void ws_write_frame(int fd, WS_Frame *frame){
     if(frame->length == 126){
         ws_write(fd, &frame->length_ext.short_len, sizeof(short));
         data_length = htons(frame->length_ext.short_len);
-    }else if(frame->length == 127){
+    } else if(frame->length == 127){
         ws_write(fd, &frame->length_ext.long_len, sizeof(long));
         data_length = htonl(frame->length_ext.long_len);
     }

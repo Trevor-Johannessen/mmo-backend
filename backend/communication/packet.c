@@ -10,6 +10,10 @@ Packet *packet_read(int fd){
 
     // recieve and parse binary frame
     frame = ws_read_frame(fd);
+    if(!frame->length){
+        ws_free_frame(frame);
+        return 0;
+    }
     packet->length = ws_length(frame)-sizeof(packet->opcode)-sizeof(packet->id)-sizeof(packet->length);
     packet->opcode = frame->data[0];
     packet->id = *((int *)(frame->data+1));

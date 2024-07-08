@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "../../structures/include/linked-list.h"
 #include "../../player/include/player.h"
+#include "../../player/include/session.h"
 #include "../../communication/include/packet.h"
 #include "map-events.h"
 
@@ -51,6 +52,7 @@ Map *map_create(int id, int width, int height);
 int map_get_segments(int width);
 int map_spawn_player(int id, struct player *player, int x, int y);
 long map_spawn_player_random(int id, struct player *player);
+void map_send_map_packet(Map *map, Session *session);
 void map_add_event(Map *map, MapEvent *event);
 MapEvent *map_event_create(int x, int y, void (*func)(MapEventArgs *));
 void map_event_free(MapEvent *event);

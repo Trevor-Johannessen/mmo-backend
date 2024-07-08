@@ -26,8 +26,9 @@ Map *map_def_test_tile(){
             map->collision[i]->segments[j] = 0;
     
     // populate decor
-    memset(map->decor, 0, width*height);
-
+    memset(map->decor, '-', width*height);
+    map->decor[5+width*5] = 'x';
+    
     // create events
     map_add_event(map, map_event_create(5, 5, map_event_hello));
     map_add_event(map, map_event_create(5, 5, map_event_goodbye));

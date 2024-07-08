@@ -91,6 +91,10 @@ int map_spawn_player(int id, Player *player, int x, int y){
     map->players = link_add_first(map->players, player);
     player->x = x;
     player->y = y;
+
+
+    // send map and move packet
+    map_send_map_packet(map, player->session);
     player_move(player, x, y);
     
     return 1;
@@ -124,6 +128,14 @@ long map_spawn_player_random(int id, Player *player){
     }
     // return coordinates
     return pos;
+}
+
+void map_send_map_packet(Map *map, Session *session){
+    Packet *packet;
+
+    packet = packet_template_map(map->id);
+    packet_write(session->fd, packet);
+    packet_free(packet);
 }
 
 TileRow *map_row_create(int width){
