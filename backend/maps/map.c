@@ -77,7 +77,7 @@ long map_random_coord(Map *map){
     return (long)x<<32 | (y & 0xffffffff);
 }
 
-int map_spawn_player(int id, Player *player, int x, int y){
+int map_spawn_player(int id, Player *player, int x, int y, int suppress_events){
     Map *map;
 
     if(id < 0 || id > MAP_COUNT)
@@ -85,22 +85,24 @@ int map_spawn_player(int id, Player *player, int x, int y){
 
     // get map
     map = map_load(id);
-    player->map = map;
+
+    // remove player from old map
+    map_remove_player(player->map, player);
 
     // add player to map
-    map->players = link_add_first(map->players, player);
+    player->map = map;
+    map_add_player(map, player);
     player->x = x;
     player->y = y;
 
-
     // send map and move packet
     map_send_map_packet(map, player->session);
-    player_move(player, x, y);
+    player_move(player, x, y, suppress_events);
     
     return 1;
 }
 
-long map_spawn_player_random(int id, Player *player){
+long map_spawn_player_random(int id, Player *player, int suppress_events){
     long pos;
     Map *map;
 
@@ -128,6 +130,29 @@ long map_spawn_player_random(int id, Player *player){
     }
     // return coordinates
     return pos;
+}
+
+void map_add_player(Map *map, struct player *player){
+    map->players = link_add_first(map->players, player);
+    atomic_fetch_add(&(player->refs), 1);
+}
+
+void map_remove_player(Map *map, struct player *player){
+    Link *link, *prev;
+    
+    prev = 0x0;
+    for(link=map->players;link;link=link_next(link)){
+        if(link->payload == player){
+            if(!prev)
+                map->players = link_next(link);
+            else
+                prev->next = link_next(link);
+            player_free(link->payload);
+            link_free(link);
+            break;
+        }
+        prev = link;
+    }
 }
 
 void map_send_map_packet(Map *map, Session *session){
@@ -186,19 +211,24 @@ void map_add_event(Map *map, MapEvent *event){
     map->events = link_add_first(map->events, event);
 }
 
-MapEvent *map_event_create(int x, int y, void (*func)(MapEventArgs *)){
+MapEvent *map_event_create(int x, int y, void *args, void (*func)(MapEventArgs *)){
     MapEvent *event;
 
     event = malloc(sizeof(MapEvent));
     event->x = x;
     event->y = y;
     event->func = func;
+    event->static_args = args;
 
     return event;
 }
 
 void map_event_free(MapEvent *event){
-   free(event); 
+    if(!event)
+        return;
+    if(event->static_args)
+        free(event->static_args);
+    free(event); 
 }
 
 void map_event_activate(int x, int y, Map *map, Player *player){
@@ -209,6 +239,7 @@ void map_event_activate(int x, int y, Map *map, Player *player){
     args = map_event_args_create(map_load(map->id), player);
     for(link=map->events;link;link=link_next(link)){
         event = (MapEvent *)link->payload;
+        args->event = event;
         if(event->x == x && event->y == y)
             event->func(args);
     }
@@ -221,7 +252,7 @@ MapEventArgs *map_event_args_create(Map *map, Player *player){
     args = malloc(sizeof(MapEventArgs));
     args->player = player;
     args->map = map;
-
+    args->event = 0x0;
     return args;
 }
 
@@ -285,4 +316,8 @@ void map_unload(int id){
         tiles[id] = 0x0;
     }
     pthread_mutex_unlock(&map_locks[id]);
+}
+
+int map_check_bounds(Map *map, int x, int y){
+    return x >= 0 && x < map->width && y >= 0 && y < map->height;
 }

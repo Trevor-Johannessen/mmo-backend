@@ -13,7 +13,7 @@
 MongoConnection *GLOBAL_CONNECTION;
 
 void *move_player_thread(void *player){
-    player_move((Player *)player, 5, 4);
+    player_move((Player *)player, 5, 4, 0);
 }
 
 void test_player_init_global(){
@@ -36,7 +36,7 @@ Test(player, test_player_create, .init = test_player_init_global, .fini = test_p
     memset(player->name, 0, 4);
     strncpy(player->name, "Sam", 3);
     player->max_move = 1;  
-    map_spawn_player(0, player, 4, 4);
+    map_spawn_player(0, player, 4, 4, 0);
     player_free(player);
 }
 
@@ -52,7 +52,7 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
     memset(sam->name, 0, 4);
     strncpy(sam->name, "Sam", 3);
     sam->max_move = 1;  
-    map_spawn_player(0, sam, 4, 4);
+    map_spawn_player(0, sam, 4, 4, 0);
 
     // set up player 2
     cid = player_create();
@@ -60,15 +60,15 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
     memset(cid->name, 0, 4);
     strncpy(cid->name, "Cid", 3);
     cid->max_move = 1;   
-    map_spawn_player(0, cid, 6, 4);
+    map_spawn_player(0, cid, 6, 4, 0);
 
     // test basic movement
     cr_assert_not(map_coord_is_walkable(sam->map, 4, 4), "The source tile is walkable before player has attempted movement.");
     cr_assert(map_coord_is_walkable(sam->map, 5, 4), "The destination tile is not walkable before player has attempted movement.");
-    player_move(sam, 5, 4);
+    player_move(sam, 5, 4, 0);
     cr_assert(map_coord_is_walkable(sam->map, 4, 4), "The source tile is not walkable after player has attempted movement.");
     cr_assert_not(map_coord_is_walkable(sam->map, 5, 4), "The destination tile is walkable after player has attempted movement.");
-    player_move(sam, 4, 4);
+    player_move(sam, 4, 4, 0);
     cr_assert_not(map_coord_is_walkable(sam->map, 4, 4), "The source tile is walkable after player has moved back.");
     cr_assert(map_coord_is_walkable(sam->map, 5, 4), "The destination tile is not walkable after player has moved back.");
 
@@ -90,8 +90,8 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
         cr_assert_neq(sam->x, cid->x, "Players are overlapping.");
 
         // reset players positions
-        player_move(sam, 4, 4);
-        player_move(cid, 6, 4);
+        player_move(sam, 4, 4, 0);
+        player_move(cid, 6, 4, 0);
     }
 
     player_free(sam);

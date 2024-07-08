@@ -34,7 +34,7 @@ Player *player_cache_find(char *id);
 
 Player *player_create();
 void player_free(Player *player);
-int player_move(Player *player, int x, int y);
+int player_move(Player *player, int x, int y, int suppress_events);
 void player_print(Player *player);
 void player_change_name(Player *player, char *name);
 

@@ -44,7 +44,7 @@ Packet *packet_handle_login(Packet *packet, Session *session){
     awaiting_connections_table_remove(code, 0);
 
     // spawn player into world
-    if(map_spawn_player(map_id, session->player, session->player->x, session->player->y) == -1){
+    if(map_spawn_player(map_id, session->player, session->player->x, session->player->y, 1) == -1){
         session_destroy(session);
         packet_errno = INVALID_AWAITING_CONNECTION;
         return 0x0;
@@ -61,7 +61,7 @@ Packet *packet_handle_move(Packet *packet, Session *session){
 
     x = *((int *)(packet->data));
     y = *((int *)(packet->data+4));
-    if(!player_move(session->player, x, y))
+    if(!player_move(session->player, x, y, 0))
         return packet_template_failure(packet->id);
     //return packet_template_success(packet->id);
     return 0x0;

@@ -19,6 +19,7 @@ typedef struct map_row {
 typedef struct map_event {
     int x; // event position
     int y;
+    void *static_args;
     void (*func)(MapEventArgs *);
 } MapEvent;
 
@@ -50,11 +51,11 @@ void map_initalize();
 TileRow *map_row_create(int width);
 Map *map_create(int id, int width, int height);
 int map_get_segments(int width);
-int map_spawn_player(int id, struct player *player, int x, int y);
-long map_spawn_player_random(int id, struct player *player);
+int map_spawn_player(int id, struct player *player, int x, int y, int suppress_events);
+long map_spawn_player_random(int id, struct player *player, int suppress_events);
 void map_send_map_packet(Map *map, Session *session);
 void map_add_event(Map *map, MapEvent *event);
-MapEvent *map_event_create(int x, int y, void (*func)(MapEventArgs *));
+MapEvent *map_event_create(int x, int y, void *args, void (*func)(MapEventArgs *));
 void map_event_free(MapEvent *event);
 void map_event_activate(int x, int y, Map *map, struct player *player);
 MapEventArgs *map_event_args_create(Map *map, struct player *player);
@@ -66,6 +67,9 @@ int map_disable_coord(Map *map, int x, int y);
 int map_enable_coord(Map *map, int x, int y);
 int map_toggle_coord(Map *map, int x, int y, int disable);
 void map_send_packet(Map *map, Packet *packet, struct player *exception);
+int map_check_bounds(Map *map, int x, int y);
 void map_lock_init();
+void map_add_player(Map *map, struct player *player);
+void map_remove_player(Map *map, struct player *player);
 
 #endif

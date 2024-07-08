@@ -14,3 +14,12 @@ void map_event_goodbye(MapEventArgs *args){
     else
         fprintf(stdout, "Goodbye!\n");
 }
+
+void map_event_change_map(MapEventArgs *args){
+    int id, x, y, suppress;
+    id = *((int *)args->event->static_args);
+    x = *((int *)args->event->static_args+1);
+    y = *((int *)args->event->static_args+2);
+    suppress = *((int *)args->event->static_args+2);
+    map_spawn_player(id, args->player, x, y, suppress);
+}

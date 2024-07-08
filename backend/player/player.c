@@ -63,11 +63,15 @@ void player_free(Player *player){
     free(player);
 }
 
-int player_move(Player *player, int x, int y){
+int player_move(Player *player, int x, int y, int suppress_events){
     Packet *packet;
 
     // check if player can move that far
     if(!movement_check_valid(player->max_move, player->x, player->y, x, y))
+        return 0;
+
+    // check if coord is in bounds
+    if(!map_check_bounds(player->map, x, y))
         return 0;
 
     // enable old coord
@@ -79,6 +83,7 @@ int player_move(Player *player, int x, int y){
     player->y = y;
 
     // trigger any events
+    if(!suppress_events)
     map_event_activate(x, y, player->map, player);
 
     // disable space
