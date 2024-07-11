@@ -45,6 +45,10 @@ int map_disable_coord(Map *map, int x, int y){
 
 int map_toggle_coord(Map *map, int x, int y, int disable){
     int segment;
+
+    if(!map)
+        return 0;
+
     // check bounds
     if(y >= map->height || y < 0 || x >= map->width || x < 0)
         return 0;
@@ -79,6 +83,10 @@ long map_random_coord(Map *map){
 
 int map_spawn_player(int id, Player *player, int x, int y, int suppress_events){
     Map *map;
+    Player *map_player;
+    Packet *packet;
+    Link *link;
+    MoveArgs move_args = {0};
 
     if(id < 0 || id > MAP_COUNT)
         return 0;
@@ -86,19 +94,22 @@ int map_spawn_player(int id, Player *player, int x, int y, int suppress_events){
     // get map
     map = map_load(id);
 
-    // remove player from old map
-    map_remove_player(player->map, player);
-
-    // add player to map
-    player->map = map;
-    map_add_player(map, player);
-    player->x = x;
-    player->y = y;
-
     // send map and move packet
     map_send_map_packet(map, player->session);
-    player_move(player, x, y, suppress_events);
+    move_args.suppress_events = suppress_events;
+    move_args.overlap = 1;
+    move_args.map = map;
+    player_move(player, x, y, move_args);
     
+    // send all positions of players on map
+    for(link=map->players;link;link=link_next(link)){
+        map_player = (Player *)link->payload;
+        if(map_player != player){
+            packet = packet_template_update_position(map_player->id, map_player->x, map_player->y);
+            packet_write(player->session->fd, packet);
+        }
+    }
+
     return 1;
 }
 

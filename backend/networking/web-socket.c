@@ -129,10 +129,10 @@ WS_Frame *ws_bin_frame(void *data, long len) {
         frame->length = len;
     else if(len < 32767){
         frame->length = 126;
-        frame->length_ext.short_len = len;
+        frame->length_ext.short_len = htons(len);
     } else {
         frame->length = 127;
-        frame->length_ext.long_len = len;
+        frame->length_ext.long_len = htonl(len);
     }
 
     frame->fin=1;
@@ -160,10 +160,10 @@ void ws_write_frame(int fd, WS_Frame *frame){
     ws_write(fd, &headers, sizeof(short));
     if(frame->length == 126){
         ws_write(fd, &frame->length_ext.short_len, sizeof(short));
-        data_length = htons(frame->length_ext.short_len);
+        data_length = ntohs(frame->length_ext.short_len);
     } else if(frame->length == 127){
         ws_write(fd, &frame->length_ext.long_len, sizeof(long));
-        data_length = htonl(frame->length_ext.long_len);
+        data_length = ntohl(frame->length_ext.long_len);
     }
     if(frame->mask)
         ws_write(fd, &frame->key, sizeof(int));

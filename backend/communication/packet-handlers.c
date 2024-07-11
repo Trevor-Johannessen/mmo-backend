@@ -58,10 +58,11 @@ Packet *packet_handle_logout(Packet *packet, Session *session){
 
 Packet *packet_handle_move(Packet *packet, Session *session){
     int x, y;
+    MoveArgs move_args = {0};
 
     x = *((int *)(packet->data));
     y = *((int *)(packet->data+4));
-    if(!player_move(session->player, x, y, 0))
+    if(!player_move(session->player, x, y, move_args))
         return packet_template_failure(packet->id);
     //return packet_template_success(packet->id);
     return 0x0;

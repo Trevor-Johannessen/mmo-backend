@@ -63,19 +63,32 @@ void player_free(Player *player){
     free(player);
 }
 
-int player_move(Player *player, int x, int y, int suppress_events){
+int player_move(Player *player, int x, int y, MoveArgs args){
     Packet *packet;
+    Map *old_map;
+
+    // update player's map
+    old_map = player->map;
+    if(args.map){
+        map_remove_player(player->map, player);
+        player->map = args.map;
+        map_add_player(player->map, player);
+    }
 
     // check if player can move that far
-    if(!movement_check_valid(player->max_move, player->x, player->y, x, y))
+    if(!args.map && !movement_check_valid(player->max_move, player->x, player->y, x, y))
         return 0;
 
     // check if coord is in bounds
     if(!map_check_bounds(player->map, x, y))
         return 0;
 
+    // disable space
+    if(!map_disable_coord(player->map, x, y) && !args.overlap)
+        return 0;
+
     // enable old coord
-    if(!map_enable_coord(player->map, player->x, player->y))
+    if(old_map && !map_enable_coord(old_map, player->x, player->y))
         return 0;
 
     // set player to new coords
@@ -83,12 +96,8 @@ int player_move(Player *player, int x, int y, int suppress_events){
     player->y = y;
 
     // trigger any events
-    if(!suppress_events)
-    map_event_activate(x, y, player->map, player);
-
-    // disable space
-    if(!map_disable_coord(player->map, player->x, player->y))
-        return 0;
+    if(!args.suppress_events)
+        map_event_activate(x, y, player->map, player);
 
     // update other players on new position
     packet = packet_template_update_position(player->id, player->x, player->y);

@@ -66,7 +66,7 @@ Map *map_def_test_tile_2(){
     // populate decor
     memset(map->decor, '-', width*height);
     for(i=1;i<=height;i++)
-        map->decor[width*height] = 'x';
+        map->decor[width*i-1] = 'x';
     map->decor[width*5] = 'x';
     
     // create events
