@@ -13,7 +13,8 @@
 MongoConnection *GLOBAL_CONNECTION;
 
 void *move_player_thread(void *player){
-    player_move((Player *)player, 5, 4, 0);
+    MoveArgs args = {0};
+    player_move((Player *)player, 5, 4, args);
 }
 
 void test_player_init_global(){
@@ -45,6 +46,7 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
     int i;
     void *trash;
     pthread_t tid1, tid2;
+    MoveArgs move_args = {0};
 
     // set up player 1
     sam = player_create();
@@ -65,10 +67,10 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
     // test basic movement
     cr_assert_not(map_coord_is_walkable(sam->map, 4, 4), "The source tile is walkable before player has attempted movement.");
     cr_assert(map_coord_is_walkable(sam->map, 5, 4), "The destination tile is not walkable before player has attempted movement.");
-    player_move(sam, 5, 4, 0);
+    player_move(sam, 5, 4, move_args);
     cr_assert(map_coord_is_walkable(sam->map, 4, 4), "The source tile is not walkable after player has attempted movement.");
     cr_assert_not(map_coord_is_walkable(sam->map, 5, 4), "The destination tile is walkable after player has attempted movement.");
-    player_move(sam, 4, 4, 0);
+    player_move(sam, 4, 4, move_args);
     cr_assert_not(map_coord_is_walkable(sam->map, 4, 4), "The source tile is walkable after player has moved back.");
     cr_assert(map_coord_is_walkable(sam->map, 5, 4), "The destination tile is not walkable after player has moved back.");
 
@@ -90,8 +92,8 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
         cr_assert_neq(sam->x, cid->x, "Players are overlapping.");
 
         // reset players positions
-        player_move(sam, 4, 4, 0);
-        player_move(cid, 6, 4, 0);
+        player_move(sam, 4, 4, move_args);
+        player_move(cid, 6, 4, move_args);
     }
 
     player_free(sam);
@@ -108,7 +110,7 @@ Test(player, test_player_db, .init = test_player_init_global, .fini = test_playe
     // check that it has valid properties
     cr_assert_not(strcmp(p1->name, "unit_tester"), "Player name is incorrect. (Expected \"unit_tester\", Got %s)", p1->name);
     cr_assert_eq(p1->x, 5, "Player X position is incorrect. (Expected 5, Got %d)", p1->x);
-    cr_assert_eq(p1->y, 8, "Player Y position is incorrect. (Expected 8, Got %d)", p1->y);
+    cr_assert_eq(p1->y, 7, "Player Y position is incorrect. (Expected 7, Got %d)", p1->y);
     cr_assert_eq(p1->max_move, 1, "Player max move is incorrect. (Expected 1, Got %d)", p1->max_move);
 
     // change properties
@@ -135,7 +137,7 @@ Test(player, test_player_db, .init = test_player_init_global, .fini = test_playe
 
     // revert properties
     p1->x = 5;
-    p1->y = 8;
+    p1->y = 7;
     p1->max_move = 1;
     player_change_name(p1, "unit_tester");
     p1->modified = 1;
