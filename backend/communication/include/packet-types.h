@@ -18,6 +18,7 @@
 #define BAD_STATE_PACKET 7
 #define INSPECT_PLAYER_PACKET 8
 #define MAP_PACKET 9
+#define LEAVING_MAP_PACKET 10
 
 Packet *packet_template(unsigned char opcode);
 
@@ -29,5 +30,6 @@ Packet *packet_template_bad_state(int code);
 Packet *packet_template_update_position(char *id, int x, int y);
 Packet *packet_template_player(int code, char *name, int x, int y);
 Packet *packet_template_map(int map_id);
+Packet *packet_template_leaving_map(char *id);
 
 #endif

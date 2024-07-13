@@ -19,7 +19,7 @@ Packet *packet_handle_route(Packet *packet, Session *session){
 
 Packet *packet_handle_login(Packet *packet, Session *session){
     char *id, *new_id, *code;
-    int map_id, id_len;
+    int id_len;
     
     // get code from login packet
     code = packet->data;
@@ -43,13 +43,12 @@ Packet *packet_handle_login(Packet *packet, Session *session){
     // session->player->name = db_get_name(id);
     // session->player->max_move = 1;
     session->state = ROAMING;
-    map_id = 0;
 
     // remove entry from awaiting_connections table
     awaiting_connections_table_remove(code, 0);
 
     // spawn player into world
-    if(map_spawn_player(map_id, session->player, session->player->x, session->player->y, 1) == -1){
+    if(map_spawn_player(session->player->map->id, session->player, session->player->x, session->player->y, 1) == -1){
         session_destroy(session);
         packet_errno = INVALID_AWAITING_CONNECTION;
         return 0x0;

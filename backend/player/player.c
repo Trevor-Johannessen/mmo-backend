@@ -55,6 +55,10 @@ void player_free(Player *player){
     if(player->modified)
         db_player_write_player(GLOBAL_CONNECTION, player);
     
+    // unref map
+    if(player->map)
+        map_unload(player->map->id);
+
     // Free player
     if(player->name)
         free(player->name);
@@ -71,8 +75,7 @@ int player_move(Player *player, int x, int y, MoveArgs args){
     old_map = player->map;
     if(args.map){
         map_remove_player(player->map, player);
-        player->map = args.map;
-        map_add_player(player->map, player);
+        map_add_player(args.map, player);
     }
 
     // check if player can move that far

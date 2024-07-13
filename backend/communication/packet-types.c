@@ -81,3 +81,14 @@ Packet *packet_template_map(int map_id){
 
     return packet_create(MAP_PACKET, 0, body, packet_size);
 }
+
+Packet *packet_template_leaving_map(char *id){
+    void *body;
+    int packet_size;
+
+    packet_size = strlen(id);
+    body = malloc(packet_size+1);
+    strncpy(body, id, packet_size+1);
+
+    return packet_create(LEAVING_MAP_PACKET, 0, body, packet_size);
+}

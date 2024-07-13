@@ -7,6 +7,7 @@ Player *db_player_get_player(MongoConnection *conn, char *id){
     bson_iter_t iter;
     mongoc_cursor_t *cursor;
     Player *player;
+    int map_id;
 
     // Check if player is cached
     if(player = player_cache_find(id))

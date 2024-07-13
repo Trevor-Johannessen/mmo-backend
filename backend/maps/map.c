@@ -100,7 +100,7 @@ int map_spawn_player(int id, Player *player, int x, int y, int suppress_events){
     move_args.overlap = 1;
     move_args.map = map;
     player_move(player, x, y, move_args);
-    
+
     // send all positions of players on map
     for(link=map->players;link;link=link_next(link)){
         map_player = (Player *)link->payload;
@@ -144,15 +144,21 @@ long map_spawn_player_random(int id, Player *player, int suppress_events){
 }
 
 void map_add_player(Map *map, struct player *player){
+    player->map = map_load(map->id);
     map->players = link_add_first(map->players, player);
     atomic_fetch_add(&(player->refs), 1);
 }
 
 void map_remove_player(Map *map, struct player *player){
     Link *link, *prev;
+    Packet *packet;
+    int removed;
     
     if(!map || !player)
         return;
+
+    // remove player from linked list
+    removed = 0;
     prev = 0x0;
     for(link=map->players;link;link=link_next(link)){
         if(link->payload == player){
@@ -162,10 +168,18 @@ void map_remove_player(Map *map, struct player *player){
                 prev->next = link_next(link);
             player_free(link->payload);
             link_free(link);
+            removed = 1;
             break;
         }
         prev = link;
     }
+    
+    // send packet notifying the player was removed
+    packet = packet_template_leaving_map(player->id);
+    if(removed)
+       for(link=map->players;link;link=link_next(link))
+            packet_write(((Player *)(link->payload))->session->fd, packet);
+    packet_free(packet);
 }
 
 void map_send_map_packet(Map *map, Session *session){
