@@ -151,6 +151,8 @@ void map_add_player(Map *map, struct player *player){
 void map_remove_player(Map *map, struct player *player){
     Link *link, *prev;
     
+    if(!map || !player)
+        return;
     prev = 0x0;
     for(link=map->players;link;link=link_next(link)){
         if(link->payload == player){
@@ -169,6 +171,8 @@ void map_remove_player(Map *map, struct player *player){
 void map_send_map_packet(Map *map, Session *session){
     Packet *packet;
 
+    if(!map || !session)
+        return;
     packet = packet_template_map(map->id);
     packet_write(session->fd, packet);
     packet_free(packet);

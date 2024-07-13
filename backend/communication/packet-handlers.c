@@ -18,8 +18,8 @@ Packet *packet_handle_route(Packet *packet, Session *session){
 }
 
 Packet *packet_handle_login(Packet *packet, Session *session){
-    char *id, *code;
-    int map_id;
+    char *id, *new_id, *code;
+    int map_id, id_len;
     
     // get code from login packet
     code = packet->data;
@@ -30,8 +30,13 @@ Packet *packet_handle_login(Packet *packet, Session *session){
         return 0x0;
     } 
 
+    // copy the id to a new string to allow the awaiting connection table to free it's copy
+    id_len = strlen(id)+1;
+    new_id = malloc(id_len);
+    strncpy(new_id, id, id_len);
+
     // get info from database (primary key is code)
-    if(!(session->player = db_player_get_player(session->conn, id))){
+    if(!(session->player = db_player_get_player(session->conn, new_id))){
         return packet_template_failure(packet->id);
     }
     session->player->session = session;

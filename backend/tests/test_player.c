@@ -25,7 +25,24 @@ void test_player_destroy_global(){
     db_free(GLOBAL_CONNECTION);
 }
 
-Test(player, test_player_create, .init = test_player_init_global, .fini = test_player_destroy_global) {
+Player *test_player_create(){
+    Player *player;
+    int fd;
+
+    player = player_create();
+    fd = open("/dev/null", O_WRONLY);
+    player->session = session_create(fd);
+    
+    return player;
+}
+
+void test_player_free(Player *player){
+    close(player->session->fd);
+    session_destroy(player->session);
+    player_free(player);
+}
+
+Test(player, test_player_creation, .init = test_player_init_global, .fini = test_player_destroy_global) {
     Player *player;
     // test uninitalized player
     player = player_create();
@@ -49,18 +66,24 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
     MoveArgs move_args = {0};
 
     // set up player 1
-    sam = player_create();
+    sam = test_player_create();
     sam->name = malloc(4);
     memset(sam->name, 0, 4);
     strncpy(sam->name, "Sam", 3);
+    sam->id = malloc(4);
+    memset(sam->id, 0, 4);
+    strncpy(sam->id, "Sam", 3);
     sam->max_move = 1;  
     map_spawn_player(0, sam, 4, 4, 0);
 
     // set up player 2
-    cid = player_create();
+    cid = test_player_create();
     cid->name = malloc(4);
     memset(cid->name, 0, 4);
     strncpy(cid->name, "Cid", 3);
+    cid->id = malloc(4);
+    memset(cid->id, 0, 4);
+    strncpy(cid->id, "Cid", 3);
     cid->max_move = 1;   
     map_spawn_player(0, cid, 6, 4, 0);
 
@@ -96,8 +119,8 @@ Test(player, test_player_move, .init = test_player_init_global, .fini = test_pla
         player_move(cid, 6, 4, move_args);
     }
 
-    player_free(sam);
-    player_free(cid);
+    test_player_free(sam);
+    test_player_free(cid);
 }
 
 Test(player, test_player_db, .init = test_player_init_global, .fini = test_player_destroy_global) {

@@ -24,6 +24,12 @@ typedef struct player {
     char *id;
 } Player;
 
+typedef struct move_args {
+    unsigned int suppress_events : 1;
+    unsigned int overlap: 1;
+    struct map *map;
+} MoveArgs;
+
 extern MongoConnection *GLOBAL_CONNECTION;
 
 void player_cache_init();
@@ -34,7 +40,7 @@ Player *player_cache_find(char *id);
 
 Player *player_create();
 void player_free(Player *player);
-int player_move(Player *player, int x, int y, int suppress_events);
+int player_move(Player *player, int x, int y, MoveArgs move_args);
 void player_print(Player *player);
 void player_change_name(Player *player, char *name);
 
