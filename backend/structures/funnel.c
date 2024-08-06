@@ -64,7 +64,6 @@ void funnel_free(Funnel *funnel, int drop_payloads){
     pthread_mutex_destroy(&funnel->thread_lock);
     // does atomic_int need to be freed?
     free(funnel);
-
 }
 
 void funnel_enqueue(Funnel *funnel, void *payload){
@@ -131,10 +130,6 @@ Link *funnel_dequeue(Funnel *funnel){
         }
     }
 
-
-
-
-
     // check if list is empty with locks
     if(!(atomic_load(&(funnel->queue_size))))
         goto funnel_dequeue_cleanup;
@@ -158,7 +153,6 @@ Link *funnel_dequeue(Funnel *funnel){
     if(grabbed_tail_mutex){
         pthread_mutex_unlock(&funnel->tail_lock);
     }
-
 
     // try to contract
     funnel_contract(funnel);
