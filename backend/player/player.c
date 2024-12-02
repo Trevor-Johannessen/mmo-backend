@@ -47,9 +47,16 @@ Player *player_create(){
 void player_free(Player *player){
     if(!player)
         return;
+
+    // TODO: Someone can ref the player after this check, add a player lock to ensure mutual access before reffering or unreffing the player
+
+    // aquire lock here (does player->refs need to be atomic?)
+
     atomic_fetch_add(&(player->refs), -1);
     if(player->refs > 0)
         return;
+
+
 
     // Write player to DB
     if(player->modified)
@@ -58,6 +65,13 @@ void player_free(Player *player){
     // unref map
     if(player->map)
         map_unload(player->map->id);
+
+    // TODO: Why don't we remove from the player cache????
+    // if(!g_hash_table_remove(player_cache, (gpointer)(player->id))){
+    //     fprintf(stderr, "Could not remove %s from hashtable.\n", player->id);
+    // }
+
+    // release lock here
 
     // Free player
     if(player->name)
