@@ -1,39 +1,57 @@
 #include "include/player.h"
 
-GHashTable *player_cache = 0x0;
+PlayerCache *player_cache = 0x0;
 
 void player_cache_init(){
-    if(!(player_cache = g_hash_table_new_full(g_str_hash, g_str_equal, 0x0, player_cache_destroy_cache))){
+    player_cache = malloc(sizeof(PlayerCache));
+    if(!(player_cache->cache = g_hash_table_new_full(g_str_hash, g_str_equal, 0x0, player_cache_destroy_cache))){
         fprintf(stderr, "Could not initalize player cache.\n");
         exit(1);
     }
+    pthread_mutex_init(&(player_cache->lock), 0x0);
+}
+
+void player_cache_lock(){
+    pthread_mutex_lock(&(player_cache->lock));
+}
+
+void player_cache_unlock(){
+    pthread_mutex_unlock(&(player_cache->lock));
 }
 
 void player_cache_destroy(){
-    g_hash_table_destroy(player_cache);
+    g_hash_table_destroy(player_cache->cache);
 }
 
 int player_cache_insert(char *id, Player *player){
     int success = 1;
-
-    if(!g_hash_table_insert(player_cache, (gpointer)id, (gpointer)player)){
+    player_cache_lock();
+    if(!g_hash_table_insert(player_cache->cache, (gpointer)id, (gpointer)player)){
         fprintf(stderr, "Could not insert player: %s.\n", id);
         success = 0;
     }
-
+    player_cache_unlock();
     return success;
 }
 
 Player *player_cache_find(char *id){
     Player *player;
-
-    if(!(player = (Player *)g_hash_table_lookup(player_cache, (gconstpointer)id)))
+    player_cache_lock();
+    player = (Player *)g_hash_table_lookup(player_cache->cache, (gconstpointer)id);
+    if(!player){
+        player_cache_unlock();
         return 0x0;
-    atomic_fetch_add(&(player->refs), 1);
+    }
+    player_lock(player);
+    player->refs++;
+    player_cache_unlock();
+    player_unlock(player);
     return player;
 }
 
 void player_cache_destroy_cache(gpointer p){
+    if(!((Player *)p)->refs)
+        return;
     player_free((Player *)p);
 }
 
@@ -41,6 +59,12 @@ Player *player_create(){
     Player *player;
     player=malloc(sizeof(*player));
     memset(player, 0, sizeof(*player));
+    if(pthread_mutex_init(&player->lock, 0x0)){
+        fprintf(stderr, "Player lock init failed.\n");
+        free(player);
+        return 0x0;
+    }
+    player->refs=1;
     return player;
 }
 
@@ -50,13 +74,17 @@ void player_free(Player *player){
 
     // TODO: Someone can ref the player after this check, add a player lock to ensure mutual access before reffering or unreffing the player
 
-    // aquire lock here (does player->refs need to be atomic?)
+    // aquire player & player cache lock here (does player->refs need to be atomic?)
+    player_cache_lock();
+    pthread_mutex_lock(&player->lock);
 
-    atomic_fetch_add(&(player->refs), -1);
-    if(player->refs > 0)
+    // reduce refs
+    player->refs--;
+    if(player->refs > 0){
+        player_cache_unlock();
+        pthread_mutex_unlock(&player->lock);
         return;
-
-
+    }
 
     // Write player to DB
     if(player->modified)
@@ -66,12 +94,14 @@ void player_free(Player *player){
     if(player->map)
         map_unload(player->map->id);
 
-    // TODO: Why don't we remove from the player cache????
-    // if(!g_hash_table_remove(player_cache, (gpointer)(player->id))){
-    //     fprintf(stderr, "Could not remove %s from hashtable.\n", player->id);
-    // }
+    // Remove from player cache and release player cache lock
+    if(player->id && !g_hash_table_remove(player_cache->cache, (gpointer)(player->id))){
+        fprintf(stderr, "Could not remove %s from hashtable.\n", player->id);
+    }
 
-    // release lock here
+    // release locks here
+    player_cache_unlock();
+    pthread_mutex_destroy(&player->lock);
 
     // Free player
     if(player->name)
@@ -79,6 +109,20 @@ void player_free(Player *player){
     if(player->id)
         free(player->id);
     free(player);
+}
+
+Player *player_ref(Player *player){
+    pthread_mutex_lock(&player->lock);
+    player->refs++;
+    pthread_mutex_unlock(&player->lock);
+}
+
+void player_lock(Player *player){
+    pthread_mutex_lock(&(player->lock));
+}
+
+void player_unlock(Player *player){
+    pthread_mutex_unlock(&(player->lock));
 }
 
 int player_move(Player *player, int x, int y, MoveArgs args){

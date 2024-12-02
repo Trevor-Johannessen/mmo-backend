@@ -144,9 +144,9 @@ long map_spawn_player_random(int id, Player *player, int suppress_events){
 }
 
 void map_add_player(Map *map, struct player *player){
-    player->map = map_load(map->id);
+    player_ref(player);
     map->players = link_add_first(map->players, player);
-    atomic_fetch_add(&(player->refs), 1);
+    player->map = map_load(map->id);
 }
 
 void map_remove_player(Map *map, struct player *player){

@@ -4,6 +4,17 @@
 #include "../db/include/db-player.h"
 #include "../player/include/player.h"
 
+extern MongoConnection *GLOBAL_CONNECTION;
+
+void test_db_init_global(){
+    GLOBAL_CONNECTION = db_connect();
+    player_cache_init();
+}
+
+void test_db_destroy_global(){
+    db_free(GLOBAL_CONNECTION);
+}
+
 Test(db, test_db_connect) {
     MongoConnection *conn;
 
@@ -13,7 +24,7 @@ Test(db, test_db_connect) {
     mongoc_cleanup();
 }
 
-Test(db, test_db_get_player) {
+Test(db, test_db_get_player, .init = test_db_init_global, .fini = test_db_destroy_global) {
     Player *player;
     MongoConnection *conn;
 

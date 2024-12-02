@@ -10,8 +10,8 @@ Player *db_player_get_player(MongoConnection *conn, char *id){
     int map_id;
 
     // Check if player is cached
-    // if(player = player_cache_find(id))
-    //     return player;
+    if(player = player_cache_find(id))
+        return player;
 
     // Initalize
     player = 0x0;
@@ -43,8 +43,8 @@ Player *db_player_get_player(MongoConnection *conn, char *id){
     }
 
     // Insert player into cache
+    // What if the player is already in the cache by another thread who is caching at the same time? 
     //player_cache_insert(id, player);
-    atomic_fetch_add(&(player->refs), 1);
 
     // Cleanup
     db_get_player_cleanup:

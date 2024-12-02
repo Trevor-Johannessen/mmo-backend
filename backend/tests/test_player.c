@@ -175,40 +175,40 @@ Test(player, test_player_db, .init = test_player_init_global, .fini = test_playe
     player_free(p1);
 }
 
-// Test(player, test_player_cache, .init = test_player_init_global, .fini = player_cache_destroy) {
-//     // Create new player
-//     Player *p1, *p2, *p3;
-//     p3 = player_create();
-//     p3->x=5;
-//     p3->x=7;
-//     p3->refs=1;
-//     p3->id = malloc(5);
-//     strcpy(p3->id, "test");
+Test(player, test_player_cache, .init = test_player_init_global, .fini = player_cache_destroy) {
+    // Create new player
+    Player *p1, *p2, *p3;
+    p3 = player_create();
+    p3->x=5;
+    p3->x=7;
+    p3->refs=1;
+    p3->id = malloc(5);
+    strcpy(p3->id, "test");
 
-//     // Insert player into cache
-//     cr_assert(player_cache_insert(p3->id, p3), "Could not insert p3 into player cache.");
+    // Insert player into cache
+    cr_assert(player_cache_insert(p3->id, p3), "Could not insert p3 into player cache.");
 
-//     // Pull same player from cache
-//     p1 = player_cache_find("test");
-//     p2 = player_cache_find("test");
+    // Pull same player from cache
+    p1 = player_cache_find("test");
+    p2 = player_cache_find("test");
 
-//     // check if addresses are equal
-//     cr_assert_eq(p3, p1, "Memory addresses retrieved from cache are different. (p3!=p1)");
-//     cr_assert_eq(p1, p2, "Memory addresses retrieved from cache are different. (p1!=p2)");
+    // check if addresses are equal
+    cr_assert_eq(p3, p1, "Memory addresses retrieved from cache are different. (p3!=p1)");
+    cr_assert_eq(p1, p2, "Memory addresses retrieved from cache are different. (p1!=p2)");
 
-//     // check ref == 2
-//     cr_assert_eq(p3->refs, 3, "Invalid ref count. (Expected 3, Got %d)", p3->refs);
+    // check ref == 2
+    cr_assert_eq(p3->refs, 3, "Invalid ref count. (Expected 3, Got %d)", p3->refs);
 
-//     // Free players
-//     player_free(p1);
-//     player_free(p2);
-//     player_free(p3);
+    // Free players
+    player_free(p1);
+    player_free(p2);
+    player_free(p3);
 
-//     // Check that player is no longer in cache
-//     p1=0x0;
-//     p1 = player_cache_find("test");
-//     cr_assert(!p1, "Found player in cache when that player should have been freed.");
-// }
+    // Check that player is no longer in cache
+    p1=0x0;
+    p1 = player_cache_find("test");
+    cr_assert(!p1, "Found player in cache when that player should have been freed.");
+}
 
 // Test(player, test_player_concurrent) {
 //     // ref player a ton of times
